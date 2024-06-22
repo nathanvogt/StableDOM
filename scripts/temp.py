@@ -1,26 +1,9 @@
-from td.environments.webdev import HTML
+def main(img):
+    """
+    Take an image then have the model iteratively produce the program that generates this image.
 
-dsl = """
-
-(Div (Style border: 12px blue width: 24px height: 36px)
-    (P 'lorem ipsum')
-)
-(P 'lorem ipsum')
-(Div
-    (P 'lorem ipsum')
-    (P 'lorem ipsum')
-)
-"""
-
-html = HTML()
-
-img = html.compile(dsl)
-
-# display img
-import matplotlib.pyplot as plt
-
-# make the background white
-# img[img == 0] = 255
-plt.imshow(img)
-plt.axis("off")
-plt.show()
+    Returns:
+        program that generates the image (str)
+        - maybe: the intermediate rendered image of each step
+        - the intermediate program at each step
+    """
