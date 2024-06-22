@@ -15,6 +15,7 @@ grammar_spec = r"""
     compose: "(" "Compose" element element ")"
     element: paragraph | div | compose
     paragraph: "(" "P" "'" text "'" ")"
+    // (Div x y style element)
     div: "(" "Div" style element ")"
     //TEXT: /[a-zA-Z0-9\s]+/
     text: "lorem ipsum" -> loremipsum
@@ -184,7 +185,9 @@ class HTMLCompiler(Compiler):
         stream.close()
         # print(image_array.shape)
         # assert image_array.shape == (_SCREEN_HEIGHT, _SCREEN_WIDTH, 3)
+        # print("compile array shape")
         return image_array / 255.0
+        # return np.load("/Users/nathanvogt/tree-diffusion/html.npy")
 
 
 class HTML(Environment):

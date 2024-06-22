@@ -159,7 +159,7 @@ class TreeDiffusionDataset(IterableDataset):
                 for expression, _ in training_examples
             ]
         except Exception as e:
-            logging.warning(f"Failed to compile: {e}")
+            # logging.warning(f"Failed to compile: {e}")
             # logging.exception(e)
             return self._produce_batch()
 
@@ -229,9 +229,8 @@ class TreeDiffusionDataset(IterableDataset):
         )
 
         while True:
-            batch = self._produce_batch()
-            print("bot batch")
-            yield batch
+            yield self._produce_batch()
+            # yield None
 
 
 def loss_fn(model, batch):
@@ -267,14 +266,33 @@ def generate_uuid():
 
 def batch_to_torch(batch, device="cpu"):
     tokens, mask, target_images, mutated_images, steps = batch
-
-    return (
+    # load each of these from files
+    # tokens = torch.load("/content/tokens.pt")
+    # mask = torch.load("/content/mask.pt")
+    # target_images = torch.load("/content/target_images.pt")
+    # mutated_images = torch.load("/content/mutated_images.pt")
+    # steps = torch.load("/content/steps.pt")
+    res = (
         tokens.to(device).long(),
         mask.to(device).float(),
         target_images.to(device).float(),
         mutated_images.to(device).float(),
         steps.to(device).long(),
     )
+    # save each of these to files
+    # torch.save(res[0], "tokens.pt")
+    # torch.save(res[1], "mask.pt")
+    # torch.save(res[2], "target_images.pt")
+    # torch.save(res[3], "mutated_images.pt")
+    # torch.save(res[4], "steps.pt")
+    # raise Exception("Saved to files")
+    # delete the original batch to save memory
+    del tokens
+    del mask
+    del target_images
+    del mutated_images
+    del steps
+    return res
 
 
 def main(argv):
@@ -407,7 +425,6 @@ def main(argv):
     model.train()
 
     for batch in dataloader:
-        print("bott batch")
         batch = batch_to_torch(batch, FLAGS.device)
         loss, aux = loss_fn(model, batch)
 

@@ -1,10 +1,11 @@
 from td.environments.webdev import HTML
+from td.environments.csg2da import CSG2DA
 from td.environments.csg2d import CSG2D
 import matplotlib.pyplot as plt
 
 
 def main(env):
-    env_to_env = {"html": HTML(), "csg2d": CSG2D()}
+    env_to_env = {"html": HTML(), "csg2da": CSG2DA(), "csg2d": CSG2D()}
     env = env_to_env[env]
 
     html_dsl = """
@@ -13,7 +14,15 @@ def main(env):
     csg2d_dsl = """
 (+ (Circle 1 0 0) (Circle 2 2 2))
 """
-    dsl = html_dsl if env.name() == "html" else csg2d_dsl
+
+    csg2da_dsl = """
+//PUT YOUR DSL CODE HERE
+"""
+    dsl = (
+        html_dsl
+        if env.name() == "html"
+        else csg2da_dsl if env.name() == "csg2da" else csg2d_dsl
+    )
 
     img = env.compile(dsl)
     print(img.shape)
