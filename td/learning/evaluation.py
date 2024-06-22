@@ -45,11 +45,14 @@ class OneStepEvaluator(object):
         random.seed(seed)
 
         def sample_fn():
-            return sampler.sample(
+            sample = sampler.sample(
                 env.grammar.start_symbol,
                 min_primitives=min_primitives,
                 max_primitives=max_primitives,
             )
+            # print("sample")
+            # print(sample)
+            return sample
 
         # Generate 1-step problems.
         self._target_expressions = [
@@ -75,9 +78,8 @@ class OneStepEvaluator(object):
             random_mutation(e, env.grammar, sampler) for e in self._target_expressions
         ]
         self._current_expressions = [
-            m.apply(e)
+            m.apply(e) if m is not None else e
             for e, m in zip(self._target_expressions, self._mutations)
-            if m is not None
         ]
 
     def evaluate(

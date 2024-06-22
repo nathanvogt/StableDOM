@@ -160,12 +160,12 @@ class TreeDiffusionDataset(IterableDataset):
                 for expression, _ in training_examples
             ]
         except Exception as e:
-            logging.warning(f"Failed to compile: {e}")
+            # logging.warning(f"Failed to compile: {e}")
+            # logging.exception(e)
             return self._produce_batch()
 
         tokenized = []
         context_tokens_mask = []
-
         for mutated_expression, reverse_mutation in training_examples:
             context_tokens, positions = self._tokenizer._tokenize_one(
                 mutated_expression, translate_positions=True
@@ -403,7 +403,6 @@ def main(argv):
     )
 
     dataloader = DataLoader(dataset, batch_size=None, num_workers=FLAGS.num_workers)
-
     model.train()
 
     for batch in dataloader:

@@ -88,7 +88,8 @@ def ar_init(checkpoint_name, target_images):
         image_model_name=image_model,
     )
     model.load_state_dict(state["model"])
-    # model.cuda()
+    if torch.cuda.is_available():
+        model.cuda()
 
     rv = ar_decoder(
         model,
@@ -100,7 +101,7 @@ def ar_init(checkpoint_name, target_images):
     )
 
     del model
-    # torch.cuda.empty_cache()
+    torch.cuda.empty_cache()
     return rv
 
 

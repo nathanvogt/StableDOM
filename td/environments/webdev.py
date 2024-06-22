@@ -12,15 +12,15 @@ import numpy as np
 
 grammar_spec = r"""
 
-    compose: element element
+    compose: "(" "Compose" element element ")"
     element: paragraph | div | compose
     paragraph: "(" "P" "'" text "'" ")"
-    div: "(" "Div" [style] element ")"
+    div: "(" "Div" style element ")"
     //TEXT: /[a-zA-Z0-9\s]+/
     text: "lorem ipsum" -> loremipsum
 
     style: "(" "Style" style_element ")"
-    style_junct: style_element style_element
+    style_junct: "(" "Junct" style_element style_element ")"
     style_element: style_pair | style_junct
     style_border: "border" ":" size unit color
     style_width: "width" ":" size unit
@@ -33,9 +33,9 @@ grammar_spec = r"""
 
     %ignore /[\t \n\f\r]+/  // Ignore whitespace
 """
-
-_SCREEN_WIDTH = 1512
-_SCREEN_HEIGHT = 982
+# 1512, 982
+_SCREEN_WIDTH = 1512 // 4
+_SCREEN_HEIGHT = 982 // 4
 
 
 class HTMLTransformer(Transformer):
@@ -162,17 +162,28 @@ class HTMLCompiler(Compiler):
     def compile(self, expression: Tree):
         content = self._expression_to_html.transform(expression)
         html = f"<html><body>{content}</body></html>"
-        img_raw = imgkit.from_string(html, False, options={"format": "png"})
-        image = PILImage.open(BytesIO(img_raw))
+        img_raw = imgkit.from_string(
+            html,
+            False,
+            options={
+                "format": "png",
+                "quiet": "",
+                # "crop-w": _SCREEN_WIDTH,
+                # "crop-h": _SCREEN_HEIGHT,
+            },
+        )
+        stream = BytesIO(img_raw)
+        image = PILImage.open(stream)
         if image.mode != "RGB":
             image = image.convert("RGB")
         desired_width = _SCREEN_WIDTH
         desired_height = _SCREEN_HEIGHT
-        # TODO: return resizing
         image = image.resize((desired_width, desired_height), PILImage.LANCZOS)
         image_array = np.array(image)
-        print(image_array.shape)
-        assert image_array.shape == (_SCREEN_HEIGHT, _SCREEN_WIDTH, 3)
+        image.close()
+        stream.close()
+        # print(image_array.shape)
+        # assert image_array.shape == (_SCREEN_HEIGHT, _SCREEN_WIDTH, 3)
         return image_array / 255.0
 
 
@@ -182,7 +193,7 @@ class HTML(Environment):
         self._grammar = Grammar(
             grammar_spec,
             start="element",
-            primitives=["paragraph", "div", "style_element"],
+            primitives=["paragraph", "style_element"],
         )
         self._compiler = HTMLCompiler()
         self._goal_checker = GaussianImageGoalChecker(self.compiled_shape)
