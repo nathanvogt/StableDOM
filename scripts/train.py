@@ -160,7 +160,8 @@ class TreeDiffusionDataset(IterableDataset):
                 for expression, _ in training_examples
             ]
         except Exception as e:
-            logging.warning(f"Failed to compile: {e}")
+            # logging.warning(f"Failed to compile: {e}")
+            # logging.exception(e)
             return self._produce_batch()
 
         tokenized = []
@@ -283,7 +284,6 @@ def main(argv):
         max_token_length=FLAGS.max_sequence_length,
         max_sequence_length=FLAGS.max_sequence_length,
     )
-    print("created tokenizer")
     one_step_evaluator = OneStepEvaluator(
         env,
         sampler,
@@ -293,7 +293,6 @@ def main(argv):
         evaluation_batch_size=FLAGS.batch_size,
         target_observation=FLAGS.target_observation,
     )
-    print("created evaluator")
 
     random.seed(1)
 
@@ -404,12 +403,10 @@ def main(argv):
     )
 
     dataloader = DataLoader(dataset, batch_size=None, num_workers=FLAGS.num_workers)
-    print("created dataloader")
     model.train()
 
     for batch in dataloader:
         batch = batch_to_torch(batch, FLAGS.device)
-        print(f"batch shape: {batch[0].shape}")
         loss, aux = loss_fn(model, batch)
 
         optimizer.zero_grad()

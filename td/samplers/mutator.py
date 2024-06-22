@@ -98,6 +98,9 @@ def random_mutation(
 
     while True:
         if not candidates:
+            # print(
+            #     f"\n\nMutation is None: \n{expression=}\n{candidates=}\n{candidate_primitive_counts=}\n\n"
+            # )
             return None
 
         candidate = random.choice(candidates)
@@ -339,7 +342,6 @@ def forward_process(
 
     for i in range(num_steps):
         mutation = random_mutation(current_expression, grammar, sampler)
-
         # Premature optimization is the root of all evil.
         if i == num_steps - 1:
             reverse_mutation = mutation.reverse(current_expression)
@@ -366,7 +368,6 @@ def forward_process_with_path(
         if force_mode is not None
         else ("random" if random.random() < p_random else "mutated")
     )
-
     if mode == "random":
         mutated_expression = sampler.sample(
             grammar.start_symbol, min_primitives, max_primitives

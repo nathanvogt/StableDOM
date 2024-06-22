@@ -8,7 +8,7 @@ def main(env):
     env = env_to_env[env]
 
     html_dsl = """
-(P'lorem ipsum')(Div(Styleheight:12px)(Div(Styleheight:12px)(Div(Styleborder:24pxred)(P'lorem ipsum'))))(Div(Stylewidth:36px)(Div(Styleborder:4pxblue)(P'lorem ipsum')))(Div(Stylewidth:12px)(Div(Stylewidth:36px)(Div(Styleborder:4pxblue)(Div(Styleborder:12pxblue)(P'lorem ipsum')))))(P'lorem ipsum')(P'lorem ipsum')
+(Compose(Compose(Div(Stylewidth:36px)(P'lorem ipsum'))(Compose(P'lorem ipsum')(Div(Styleheight:12px)(Div(Styleborder:12pxblue)(Div(Styleheight:36px)(Div(Styleborder:12pxblue)(Div(Styleheight:4px)(Div(Styleborder:36pxred)(P'lorem ipsum')))))))))(Compose(P'lorem ipsum')(Div(Styleborder:4pxred)(P'lorem ipsum'))))
 """
     csg2d_dsl = """
 (+ (Circle 1 0 0) (Circle 2 2 2))

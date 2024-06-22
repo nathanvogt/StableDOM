@@ -50,7 +50,8 @@ class OneStepEvaluator(object):
                 min_primitives=min_primitives,
                 max_primitives=max_primitives,
             )
-            print("sampled")
+            # print("sample")
+            # print(sample)
             return sample
 
         # Generate 1-step problems.
@@ -77,7 +78,8 @@ class OneStepEvaluator(object):
             random_mutation(e, env.grammar, sampler) for e in self._target_expressions
         ]
         self._current_expressions = [
-            m.apply(e) for e, m in zip(self._target_expressions, self._mutations)
+            m.apply(e) if m is not None else e
+            for e, m in zip(self._target_expressions, self._mutations)
         ]
 
     def evaluate(

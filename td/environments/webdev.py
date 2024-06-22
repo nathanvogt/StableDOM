@@ -12,7 +12,7 @@ import numpy as np
 
 grammar_spec = r"""
 
-    compose: element element
+    compose: "(" "Compose" element element ")"
     element: paragraph | div | compose
     paragraph: "(" "P" "'" text "'" ")"
     div: "(" "Div" style element ")"
@@ -20,7 +20,7 @@ grammar_spec = r"""
     text: "lorem ipsum" -> loremipsum
 
     style: "(" "Style" style_element ")"
-    style_junct: style_element style_element
+    style_junct: "(" "Junct" style_element style_element ")"
     style_element: style_pair | style_junct
     style_border: "border" ":" size unit color
     style_width: "width" ":" size unit
@@ -193,7 +193,7 @@ class HTML(Environment):
         self._grammar = Grammar(
             grammar_spec,
             start="element",
-            primitives=["paragraph", "div", "style_element"],
+            primitives=["paragraph", "style_element"],
         )
         self._compiler = HTMLCompiler()
         self._goal_checker = GaussianImageGoalChecker(self.compiled_shape)
