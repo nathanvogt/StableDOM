@@ -3,12 +3,9 @@ from td.grammar import Compiler, Grammar
 from td.environments.environment import Environment
 from td.environments.goal_checker import GaussianImageGoalChecker
 import imgkit
-from IPython.display import Image
 from io import BytesIO
 from PIL import Image as PILImage
 import numpy as np
-
-from html2image import Html2Image
 
 from PIL import Image
 import numpy as np
@@ -161,8 +158,6 @@ class HTMLCompiler(Compiler):
     def __init__(self):
         super().__init__()
         self._expression_to_html = HTMLTransformer()
-        self._hti = Html2Image()
-        self.temp_img_path = "temp.png"
 
     def compile(self, expression: Tree):
         content = self._expression_to_html.transform(expression)
@@ -185,7 +180,9 @@ class HTML(Environment):
     def __init__(self):
         super().__init__()
         self._grammar = Grammar(
-            grammar_spec, start="element", primitives=["paragraph", "div"]
+            grammar_spec,
+            start="element",
+            primitives=["paragraph", "div", "style_element"],
         )
         self._compiler = HTMLCompiler()
         self._goal_checker = GaussianImageGoalChecker(self.compiled_shape)
