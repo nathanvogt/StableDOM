@@ -50,7 +50,7 @@ class Grammar(object):
                 lexer="contextual",
             )
             for k in self._nonterminals.keys()
-            if not isinstance(k, str)
+            # if not isinstance(k, str)
         }
 
     def _initialize_sampler_constants(self):
