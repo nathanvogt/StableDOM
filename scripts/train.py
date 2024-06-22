@@ -41,8 +41,8 @@ flags.DEFINE_integer("max_primitives", 8, "Maximum number of primitives")
 flags.DEFINE_integer("n_layers", 3, "Number of layers")
 flags.DEFINE_integer("d_model", 128, "Model dimension")
 flags.DEFINE_integer("num_heads", 8, "Number of heads")
-flags.DEFINE_string("device", "cuda", "Device to use")
-# flags.DEFINE_string("device", "cpu", "Device to use")
+# flags.DEFINE_string("device", "cuda", "Device to use")
+flags.DEFINE_string("device", "cpu", "Device to use")
 flags.DEFINE_string("image_model", "nf_resnet26", "Vision model to use")
 flags.DEFINE_enum(
     "forward_mode",

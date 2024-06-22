@@ -31,8 +31,8 @@ flags.DEFINE_integer("max_sequence_length", 512, "Maximum sequence length")
 flags.DEFINE_integer("min_primitives", 2, "Minimum number of primitives")
 flags.DEFINE_integer("max_primitives", 8, "Maximum number of primitives")
 flags.DEFINE_integer("n_layers", 3, "Number of layers")
-flags.DEFINE_string("device", "cuda", "Device to use")
-# flags.DEFINE_string("device", "cpu", "Device to use")
+# flags.DEFINE_string("device", "cuda", "Device to use")
+flags.DEFINE_string("device", "cpu", "Device to use")
 flags.DEFINE_string("resume_from", None, "Resume from checkpoint")
 flags.DEFINE_bool(
     "target_observation", False, "Use observation compiler for target image."

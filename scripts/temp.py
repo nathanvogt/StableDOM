@@ -7,3 +7,4 @@ def main(img):
         - maybe: the intermediate rendered image of each step
         - the intermediate program at each step
     """
+    return
