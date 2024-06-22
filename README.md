@@ -59,6 +59,8 @@ For evaluation,
 python scripts/eval_td_search.py --checkpoint_name assets/td_csg2da.pt --ar_checkpoint_name assets/ar_csg2da.pt --problem_filename assets/csg2da_test_set.pkl
 ```
 
+python scripts/eval_td.py --checkpoint_name assets/td_csg2da.pt --ar_checkpoint_name assets/ar_csg2da.pt --problem_filename assets/csg2da_test_set.pkl --device cpu
+
 Evaluation should print results alongside output number of steps to solve problems in a new `evals/` directory.
 
 For training,
