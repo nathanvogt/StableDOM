@@ -45,22 +45,19 @@ class OneStepEvaluator(object):
         random.seed(seed)
 
         def sample_fn():
-            print("sampling")
             sample = sampler.sample(
                 env.grammar.start_symbol,
                 min_primitives=min_primitives,
                 max_primitives=max_primitives,
             )
-            print(f"sampled: {sample}")
+            print("sampled")
             return sample
 
-        print(f"init evaluation. num problems: {num_problems}")
         # Generate 1-step problems.
         self._target_expressions = [
             env.sample_non_empty(sample_fn) if non_empty else sample_fn()
             for _ in range(num_problems)
         ]
-        print(f"evaluation expressions: \n\n{self._target_expressions}\n\n")
 
         self._target_images = np.array(
             [env.compile(e) for e in self._target_expressions]

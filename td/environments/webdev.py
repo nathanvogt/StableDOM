@@ -33,9 +33,9 @@ grammar_spec = r"""
 
     %ignore /[\t \n\f\r]+/  // Ignore whitespace
 """
-
-_SCREEN_WIDTH = 224
-_SCREEN_HEIGHT = 224
+# 1512, 982
+_SCREEN_WIDTH = 1512 // 4
+_SCREEN_HEIGHT = 982 // 4
 
 
 class HTMLTransformer(Transformer):

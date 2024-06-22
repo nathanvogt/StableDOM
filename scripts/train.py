@@ -106,7 +106,6 @@ class TreeDiffusionDataset(IterableDataset):
 
             while len(target_expressions) < self._batch_size:
                 expression = self._env.sample_non_empty(sample_fn)
-                print("\n\nexpression\n\n")
                 target_expressions.append(expression)
 
             steps = [
@@ -161,7 +160,7 @@ class TreeDiffusionDataset(IterableDataset):
                 for expression, _ in training_examples
             ]
         except Exception as e:
-            # logging.warning(f"Failed to compile: {e}")
+            logging.warning(f"Failed to compile: {e}")
             return self._produce_batch()
 
         tokenized = []
@@ -410,6 +409,7 @@ def main(argv):
 
     for batch in dataloader:
         batch = batch_to_torch(batch, FLAGS.device)
+        print(f"batch shape: {batch[0].shape}")
         loss, aux = loss_fn(model, batch)
 
         optimizer.zero_grad()
