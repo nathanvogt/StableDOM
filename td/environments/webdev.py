@@ -14,7 +14,7 @@ grammar_spec = r"""
     compose: element element
     element: paragraph | div | compose
     paragraph: "(" "P" "'" text "'" ")"
-    div: "(" "Div" [style] element ")"
+    div: "(" "Div" element ")"
     //TEXT: /[a-zA-Z0-9\s]+/
     text: "lorem ipsum" -> loremipsum
 
@@ -147,7 +147,9 @@ class HTMLCompiler(Compiler):
 class HTML(Environment):
     def __init__(self):
         super().__init__()
-        self._grammar = Grammar(grammar_spec, start="element", primitives=["element"])
+        self._grammar = Grammar(
+            grammar_spec, start="element", primitives=["paragraph", "div"]
+        )
         self._compiler = HTMLCompiler()
         self._goal_checker = GaussianImageGoalChecker(self.compiled_shape)
 
