@@ -1,13 +1,14 @@
 from td.environments.webdev import HTML
 
 dsl = """
-(Div (Style border: 4px blue, width: 100px, height: 50px)
-    (P 'Hello world')
+
+(Div (Style border: 12px blue width: 24px height: 36px)
+    (P 'lorem ipsum')
 )
-(P 'This is a paragraph')
+(P 'lorem ipsum')
 (Div
-    (P 'This is a nested paragraph')
-    (P 'This is another nested paragraph')
+    (P 'lorem ipsum')
+    (P 'lorem ipsum')
 )
 """
 

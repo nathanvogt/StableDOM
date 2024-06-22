@@ -14,11 +14,13 @@ grammar_spec = r"""
     compose: element element
     element: paragraph | div | compose
     paragraph: "(" "P" "'" text "'" ")"
-    div: "(" "Div" [style] element* ")"
+    div: "(" "Div" [style] element ")"
     //TEXT: /[a-zA-Z0-9\s]+/
     text: "lorem ipsum" -> loremipsum
 
-    style: "(" "Style" [style_pair ("," style_pair)*] ")"
+    style: "(" "Style" style_element ")"
+    style_junct: style_element style_element
+    style_element: style_pair | style_junct
     style_border: "border" ":" size unit color
     style_width: "width" ":" size unit
     style_height: "height" ":" size unit
@@ -55,9 +57,18 @@ class HTMLTransformer(Transformer):
     def style_pair(self, children):
         return children[0]
 
+    def style_junct(self, children):
+        return "; ".join(children)
+
+    def style_element(self, children):
+        return children[0]
+
     def style(self, children):
-        s = "; ".join(children)
+        s = children[0]
         return f"style='{s}'"
+
+    def compose(self, children):
+        return "".join(children)
 
     def div(self, children):
         if children and len(children):
