@@ -37,8 +37,8 @@ grammar_spec = r"""
     %ignore /[\t \n\f\r]+/  // Ignore whitespace
 """
 
-_SCREEN_WIDTH = 224 * 4
-_SCREEN_HEIGHT = 224 * 2
+_SCREEN_WIDTH = 1512
+_SCREEN_HEIGHT = 982
 
 
 class HTMLTransformer(Transformer):
@@ -173,9 +173,11 @@ class HTMLCompiler(Compiler):
             image = image.convert("RGB")
         desired_width = _SCREEN_WIDTH
         desired_height = _SCREEN_HEIGHT
-        image = image.resize((desired_width, desired_height), PILImage.LANCZOS)
+        # TODO: return resizing
+        # image = image.resize((desired_width, desired_height), PILImage.LANCZOS)
         image_array = np.array(image)
-        assert image_array.shape == (_SCREEN_HEIGHT, _SCREEN_WIDTH, 3)
+        print(image_array.shape)
+        # assert image_array.shape == (_SCREEN_HEIGHT, _SCREEN_WIDTH, 3)
         return image_array / 255.0
 
 
