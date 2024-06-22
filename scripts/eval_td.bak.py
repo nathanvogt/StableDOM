@@ -124,116 +124,103 @@ def create_generator(argv):
 
     with open(FLAGS.problem_filename, "rb") as f:
         # target_expressions = pickle.load(f)
-        target_expressions = ["(- (+ (Circle 1 F F) (+ (Circle 5 3 2) (Circle 3 6 8))) (Quad 5 5 5 5 H))"]
+        target_expression = "(- (+ (Circle 1 F F) (+ (Circle 5 3 2) (Circle 3 6 8))) (Quad 5 5 5 5 H))"
 
-    target_images = np.array(
-        [
-            env.compile(e) if not target_observation else env.compile_observation(e)
-            for e in target_expressions
-        ]
+    target_image = np.array(env.compile(target_expression)) 
+
+    target_image_torch = (
+        torch.tensor(target_image).to(FLAGS.device).float().permute(2, 0, 1)
     )
 
-    target_images_torch = (
-        torch.tensor(target_images).to(FLAGS.device).float().permute(0, 3, 1, 2)
-    )
+    steps_to_solve = np.inf
 
-    steps_to_solve = np.zeros(len(target_expressions)) + np.inf
+    # Replicate the target image to create a batch.
+    batch_targets = target_image_torch.repeat(FLAGS.num_replicas, 1, 1, 1)
 
-    for problem_i in range(len(target_expressions)):
-        logging.info(f"Problem {problem_i + 1} / {len(target_expressions)} ...")
+    # ar_predictions = ar_decoder(
+    #     ar_model,
+    #     env,
+    #     ar_tokenizer,
+    #     ar_config["num_image_tokens"],
+    #     batch_targets,
+    #     temperature=1.0,
+    # )
 
-        target_image_torch = target_images_torch[problem_i].unsqueeze(0)
-        # Replicate the target image to create a batch.
-        batch_targets = target_image_torch.repeat(FLAGS.num_replicas, 1, 1, 1)
+    # initial_expressions = list(set(ar_predictions))[: FLAGS.num_replicas]
+    # logging.info(f"Unique AR predictions: {len(initial_expressions)}")
+    # while len(initial_expressions) < FLAGS.num_replicas:
+    #     initial_expressions.append(sampler.sample(env.grammar.start_symbol))
 
-        ar_predictions = ar_decoder(
-            ar_model,
-            env,
-            ar_tokenizer,
-            ar_config["num_image_tokens"],
-            batch_targets,
-            temperature=1.0,
-        )
+    initial_expressions = ["(Quad 0 0 0 0 H)"]
 
-        # initial_expressions = list(set(ar_predictions))[: FLAGS.num_replicas]
-        # logging.info(f"Unique AR predictions: {len(initial_expressions)}")
-        # while len(initial_expressions) < FLAGS.num_replicas:
-        #     initial_expressions.append(sampler.sample(env.grammar.start_symbol))
+    current_expressions = [x for x in initial_expressions]
+    current_images = np.array([env.compile(e) for e in current_expressions])
 
-        initial_expressions = ["(Quad 0 0 0 0 H)"]
+    # Did we already solve the problem?
+    # for image_i in range(len(current_images)):
+    #     if env.goal_reached(current_images[image_i], target_images[problem_i]):
+    #         logging.info(f"Problem already solved")
+    #         steps_to_solve[problem_i] = image_i + 1
+    #         break
 
-        current_expressions = [x for x in initial_expressions]
-        current_images = np.array([env.compile(e) for e in current_expressions])
-
-        # Did we already solve the problem?
-        # for image_i in range(len(current_images)):
-        #     if env.goal_reached(current_images[image_i], target_images[problem_i]):
-        #         logging.info(f"Problem already solved")
-        #         steps_to_solve[problem_i] = image_i + 1
-        #         break
-
-        if steps_to_solve[problem_i] < np.inf:
-            logging.info(f"Steps to solve: {steps_to_solve[problem_i]}")
-            current_solve_rate = np.sum(steps_to_solve < np.inf) / (problem_i + 1)
-            logging.info(f"Solve rate: {current_solve_rate * 100:.2f}%")
-            with open(save_filename, "wb") as f:
-                pickle.dump(
-                    {
-                        "steps_to_solve": steps_to_solve,
-                    },
-                    f,
-                )
-            continue
-
-        # We've already spent replicas.
-        current_steps = len(current_images)
-        values = [-np.inf]
-
-        
-        def step():
-            for step_i in range(FLAGS.max_steps):
-                logging.info(f"Step {step_i} / {FLAGS.max_steps} ... {max(values)}")
-                mutations = sample_model_kv(
-                    td_model,
-                    env,
-                    tokenizer,
-                    current_expressions,
-                    batch_targets,
-                    temperature=FLAGS.temperature,
-                )
-
-                current_expressions = [
-                    m.apply(e) for m, e in zip(mutations, current_expressions)
-                ]
-                current_images = np.array([env.compile(e) for e in current_expressions])
-
-                yield current_images
-
-                for image_i in range(len(current_images)):
-                    if env.goal_reached(current_images[image_i], target_images[problem_i]):
-                        steps_to_solve[problem_i] = current_steps + image_i + 1
-                        break
-                    values.append(
-                        env._goal_checker.goal_reached_value(
-                            current_images[image_i], target_images[problem_i]
-                        )
-                    )
-
-                current_steps += len(current_images)
-
-                if steps_to_solve[problem_i] < np.inf:
-                    break
-        
-        # np_iteration_images = np.array(iteration_images)
-
-        # logging.info(f"Saving images: {np_iteration_images.shape}")
-        # np.save("evaluation_output", np_iteration_images)
-
-        logging.info(f"Max val: {max(values)}")
-        logging.info(f"Steps to solve: {steps_to_solve[problem_i]}")
-        current_solve_rate = np.sum(steps_to_solve < np.inf) / (problem_i + 1)
-        logging.info(f"Solve rate: {current_solve_rate * 100:.2f}%")
+    if steps_to_solve < np.inf:
+        logging.info(f"Steps to solve: {steps_to_solve}")
         with open(save_filename, "wb") as f:
+            pickle.dump(
+                {
+                    "steps_to_solve": steps_to_solve,
+                },
+                f,
+            )
+
+    # We've already spent replicas.
+    current_steps = len(current_images)
+    values = [-np.inf]
+
+    
+    def step():
+        current_expressions = []
+        for step_i in range(FLAGS.max_steps):
+            logging.info(f"Step {step_i} / {FLAGS.max_steps} ... {max(values)}")
+            mutations = sample_model_kv(
+                td_model,
+                env,
+                tokenizer,
+                current_expressions,
+                batch_targets,
+                temperature=FLAGS.temperature,
+            )
+
+            current_expressions = [
+                m.apply(e) for m, e in zip(mutations, current_expressions)
+            ]
+            current_images = np.array([env.compile(e) for e in current_expressions])
+
+            yield current_images
+
+            for image_i in range(len(current_images)):
+                if env.goal_reached(current_images[image_i], target_image):
+                    steps_to_solve = current_steps + image_i + 1
+                    break
+                values.append(
+                    env._goal_checker.goal_reached_value(
+                        current_images[image_i], target_image
+                    )
+                )
+
+            current_steps += len(current_images)
+
+            if steps_to_solve < np.inf:
+                break
+    
+    # np_iteration_images = np.array(iteration_images)
+
+    # logging.info(f"Saving images: {np_iteration_images.shape}")
+    # np.save("evaluation_output", np_iteration_images)
+
+    logging.info(f"Max val: {max(values)}")
+    logging.info(f"Steps to solve: {steps_to_solve}")
+    with open(save_filename, "wb") as f:
             pickle.dump(
                 {
                     "steps_to_solve": steps_to_solve,
