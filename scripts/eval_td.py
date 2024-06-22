@@ -195,7 +195,7 @@ def create_generator(argv):
         values = [-np.inf]
 
         iteration_images = []
-        iteration_images.append(current_images)
+        iteration_images.extend(current_images)
         for step_i in range(FLAGS.max_steps):
             logging.info(f"Step {step_i} / {FLAGS.max_steps} ... {max(values)}")
             mutations = sample_model_kv(
