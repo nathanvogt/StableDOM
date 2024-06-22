@@ -2,19 +2,23 @@ from lark import Transformer, Tree, v_args
 from td.grammar import Compiler, Grammar
 from td.environments.environment import Environment
 from td.environments.goal_checker import GaussianImageGoalChecker
+import imgkit
+from IPython.display import Image
+from io import BytesIO
+from PIL import Image as PILImage
+import numpy as np
 
 from html2image import Html2Image
 
 from PIL import Image
 import numpy as np
-import os
 
 grammar_spec = r"""
 
     compose: element element
     element: paragraph | div | compose
     paragraph: "(" "P" "'" text "'" ")"
-    div: "(" "Div" element ")"
+    div: "(" "Div" [style] element ")"
     //TEXT: /[a-zA-Z0-9\s]+/
     text: "lorem ipsum" -> loremipsum
 
@@ -27,14 +31,14 @@ grammar_spec = r"""
     style_pair: style_border | style_width | style_height
 
     color: "red" -> red | "blue" -> blue
-    size: "12" -> twelve | "24" -> twentyfour | "36" -> thirtysix
+    size: "4" -> four | "12" -> twelve | "24" -> twentyfour | "36" -> thirtysix
     unit: "px" -> px
 
     %ignore /[\t \n\f\r]+/  // Ignore whitespace
 """
 
-_SCREEN_WIDTH = 224
-_SCREEN_HEIGHT = 224
+_SCREEN_WIDTH = 224 * 4
+_SCREEN_HEIGHT = 224 * 2
 
 
 class HTMLTransformer(Transformer):
@@ -96,6 +100,9 @@ class HTMLTransformer(Transformer):
         (body,) = children
         return f"<html>{body}</html>"
 
+    def four(self, _):
+        return 4
+
     def twelve(self, _):
         return 12
 
@@ -118,6 +125,38 @@ class HTMLTransformer(Transformer):
         return "heheheloremipsumhehehehe"
 
 
+def resize_image(image, new_width, new_height):
+    original_height, original_width, _ = image.shape
+
+    height_ratio = new_height / original_height
+    width_ratio = new_width / original_width
+    resize_ratio = min(height_ratio, width_ratio)
+
+    intermediate_height = int(original_height * resize_ratio)
+    intermediate_width = int(original_width * resize_ratio)
+
+    resized_image = np.zeros(
+        (intermediate_height, intermediate_width, 3), dtype=image.dtype
+    )
+    for i in range(intermediate_height):
+        for j in range(intermediate_width):
+            x = int(j / resize_ratio)
+            y = int(i / resize_ratio)
+            resized_image[i, j, :] = image[y, x, :]
+
+    final_image = np.zeros((new_height, new_width, 3), dtype=image.dtype)
+    start_x = (new_width - intermediate_width) // 2
+    start_y = (new_height - intermediate_height) // 2
+
+    final_image[
+        start_y : start_y + intermediate_height,
+        start_x : start_x + intermediate_width,
+        :,
+    ] = resized_image
+
+    return final_image
+
+
 class HTMLCompiler(Compiler):
     def __init__(self):
         super().__init__()
@@ -128,20 +167,16 @@ class HTMLCompiler(Compiler):
     def compile(self, expression: Tree):
         content = self._expression_to_html.transform(expression)
         html = f"<html><body>{content}</body></html>"
-        self._hti.screenshot(
-            html_str=html,
-            save_as=self.temp_img_path,
-            size=(_SCREEN_WIDTH, _SCREEN_HEIGHT),
-        )
-        img = Image.open(self.temp_img_path)
-        try:
-            os.remove(self.temp_img_path)
-        except FileNotFoundError:
-            print("File not found")
-
-        img_rgb = img.convert("RGB")
-        img_array = np.array(img_rgb)
-        return img_array / 255.0
+        img_raw = imgkit.from_string(html, False, options={"format": "png"})
+        image = PILImage.open(BytesIO(img_raw))
+        if image.mode != "RGB":
+            image = image.convert("RGB")
+        desired_width = _SCREEN_WIDTH
+        desired_height = _SCREEN_HEIGHT
+        image = image.resize((desired_width, desired_height), PILImage.LANCZOS)
+        image_array = np.array(image)
+        assert image_array.shape == (_SCREEN_HEIGHT, _SCREEN_WIDTH, 3)
+        return image_array / 255.0
 
 
 class HTML(Environment):
