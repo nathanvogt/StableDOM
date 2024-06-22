@@ -38,6 +38,7 @@ class Environment(ABC):
 
     @lru_cache(maxsize=_COMPILER_CACHE_SIZE)
     def compile(self, expression: str):
+        print(f"Compiling: {expression}")
         return self.compile_tree(self.grammar.parse(expression))
 
     def compile_observation(self, expression: str):

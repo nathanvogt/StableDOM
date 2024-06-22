@@ -40,7 +40,6 @@ class Grammar(object):
         self._tree_matcher = TreeMatcher(self._lark_parser)
 
         self._initialize_sampler_constants()
-
         self._lark_parser_for_start = {
             k.value: Lark(
                 grammar_spec,
@@ -51,6 +50,7 @@ class Grammar(object):
                 lexer="contextual",
             )
             for k in self._nonterminals.keys()
+            if not isinstance(k, str)
         }
 
     def _initialize_sampler_constants(self):
@@ -82,6 +82,7 @@ class Grammar(object):
                 k: clean
                 for k, v in nonterminals.items()
                 if (clean := [x for x in v if all(r.name in allowed_rules for r in x)])
+                # and not isinstance(k, str)  # to avoid the * non-terminals
             }
         ):
             allowed_rules = {*terminal_map, *nonterminals}
@@ -122,6 +123,7 @@ class Grammar(object):
 
             return rv
 
+        # print(f"nonterminals: {nonterminals}")
         all_terminals_and_nonterminals = set()
         for k, v in nonterminals.items():
             for p in v:

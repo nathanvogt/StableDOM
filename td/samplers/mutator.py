@@ -61,7 +61,10 @@ class CountPrimitives(Visitor):
 
     def __default__(self, tree):
         self_count = tree.data in self._primitives
-        count = sum(child.primitive_count for child in tree.children) + self_count
+        try:
+            count = sum(child.primitive_count for child in tree.children) + self_count
+        except:
+            print(f"\n\nError in tree. Children: {tree.children}\n\n")
         tree.primitive_count = count
 
 
@@ -106,22 +109,25 @@ def random_mutation(
             sub_expression = expression[start:end]
             start_symbol = grammar.start_symbol
         else:
-            parent = candidate.parent
-            start = candidate.meta.start_pos
-            end = candidate.meta.end_pos
+            try:
+                parent = candidate.parent
+                start = candidate.meta.start_pos
+                end = candidate.meta.end_pos
 
-            sub_expression = expression[start:end]
-            self_child_index = parent.children.index(candidate)
+                sub_expression = expression[start:end]
+                self_child_index = parent.children.index(candidate)
 
-            matched = grammar.tree_matcher.match_tree(parent, parent.data)
-            rule_name = matched.children[self_child_index].data
-            options = grammar.nonterminals[rule_name]
+                matched = grammar.tree_matcher.match_tree(parent, parent.data)
+                rule_name = matched.children[self_child_index].data
+                options = grammar.nonterminals[rule_name]
 
-            if len(options) <= 1:
-                candidates.remove(candidate)
-                continue
+                if len(options) <= 1:
+                    candidates.remove(candidate)
+                    continue
 
-            start_symbol = grammar.names_to_symbols[rule_name]
+                start_symbol = grammar.names_to_symbols[rule_name]
+            except:
+                print(f"error: {self_child_index}, {matched.children}")
 
         attempts = 0
         while True:
@@ -426,9 +432,11 @@ def forward_process_with_guards(
         while True:
             mutation = random_mutation(current_expression, grammar, sampler)
             if not any(
-                s <= mutation.start < e or s <= mutation.end < e
-                if not full_intersection
-                else _intersects((mutation.start, mutation.end), (s, e))
+                (
+                    s <= mutation.start < e or s <= mutation.end < e
+                    if not full_intersection
+                    else _intersects((mutation.start, mutation.end), (s, e))
+                )
                 for s, e in guards
             ):
                 break

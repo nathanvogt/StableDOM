@@ -159,6 +159,7 @@ class ConstrainedRandomSampler(GrammarSampler):
             return rv
 
         current_primitives = 0
+        # print(f"min primitives: {self.grammar._min_kprimitives}")
         unexpanded_min_primitives = self.grammar._min_primitives[start]
         queue = [tree]
 

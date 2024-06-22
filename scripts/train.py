@@ -41,7 +41,8 @@ flags.DEFINE_integer("max_primitives", 8, "Maximum number of primitives")
 flags.DEFINE_integer("n_layers", 3, "Number of layers")
 flags.DEFINE_integer("d_model", 128, "Model dimension")
 flags.DEFINE_integer("num_heads", 8, "Number of heads")
-flags.DEFINE_string("device", "cuda", "Device to use")
+# flags.DEFINE_string("device", "cuda", "Device to use")
+flags.DEFINE_string("device", "cpu", "Device to use")
 flags.DEFINE_string("image_model", "nf_resnet26", "Vision model to use")
 flags.DEFINE_enum(
     "forward_mode",
@@ -143,15 +144,19 @@ class TreeDiffusionDataset(IterableDataset):
                 ]
 
             target_images = [
-                self._env.compile(expression)
-                if not self._target_observation
-                else self._env.compile_observation(expression)
+                (
+                    self._env.compile(expression)
+                    if not self._target_observation
+                    else self._env.compile_observation(expression)
+                )
                 for expression in target_expressions
             ]
             mutated_images = [
-                self._env.compile(expression)
-                if not self._current_observation
-                else self._env.compile_observation(expression)
+                (
+                    self._env.compile(expression)
+                    if not self._current_observation
+                    else self._env.compile_observation(expression)
+                )
                 for expression, _ in training_examples
             ]
         except Exception as e:

@@ -7,6 +7,7 @@ from .nanosvg import NanoSVG
 from .rainbow import Rainbow
 from .tinysvg import TinySVG
 from .tinysvgoffset import TinySVGOffset
+from .webdev import HTML
 
 environments = {
     Blockworld.name(): Blockworld,
@@ -17,6 +18,7 @@ environments = {
     CSG2DH.name(): CSG2DH,
     TinySVGOffset.name(): TinySVGOffset,
     CSG2DA.name(): CSG2DA,
+    HTML.name(): HTML,
 }
 
 __all__ = [
