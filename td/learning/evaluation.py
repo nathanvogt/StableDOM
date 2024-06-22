@@ -75,7 +75,9 @@ class OneStepEvaluator(object):
             random_mutation(e, env.grammar, sampler) for e in self._target_expressions
         ]
         self._current_expressions = [
-            m.apply(e) for e, m in zip(self._target_expressions, self._mutations)
+            m.apply(e)
+            for e, m in zip(self._target_expressions, self._mutations)
+            if m is not None
         ]
 
     def evaluate(
@@ -274,7 +276,6 @@ class AREvaluator(object):
                 np.zeros(self._num_problems, dtype=bool),
                 [],
             )
-
 
 
 def _scene_leaves_and_centers(scene: ice.Drawable):

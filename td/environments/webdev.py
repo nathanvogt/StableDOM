@@ -169,10 +169,10 @@ class HTMLCompiler(Compiler):
         desired_width = _SCREEN_WIDTH
         desired_height = _SCREEN_HEIGHT
         # TODO: return resizing
-        # image = image.resize((desired_width, desired_height), PILImage.LANCZOS)
+        image = image.resize((desired_width, desired_height), PILImage.LANCZOS)
         image_array = np.array(image)
         print(image_array.shape)
-        # assert image_array.shape == (_SCREEN_HEIGHT, _SCREEN_WIDTH, 3)
+        assert image_array.shape == (_SCREEN_HEIGHT, _SCREEN_WIDTH, 3)
         return image_array / 255.0
 
 
