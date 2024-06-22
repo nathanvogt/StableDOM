@@ -41,8 +41,7 @@ flags.DEFINE_integer("max_primitives", 8, "Maximum number of primitives")
 flags.DEFINE_integer("n_layers", 3, "Number of layers")
 flags.DEFINE_integer("d_model", 128, "Model dimension")
 flags.DEFINE_integer("num_heads", 8, "Number of heads")
-# flags.DEFINE_string("device", "cuda", "Device to use")
-flags.DEFINE_string("device", "cpu", "Device to use")
+flags.DEFINE_string("device", "cuda", "Device to use")
 flags.DEFINE_string("image_model", "nf_resnet26", "Vision model to use")
 flags.DEFINE_enum(
     "forward_mode",
@@ -160,7 +159,7 @@ class TreeDiffusionDataset(IterableDataset):
                 for expression, _ in training_examples
             ]
         except Exception as e:
-            # logging.warning(f"Failed to compile: {e}")
+            logging.warning(f"Failed to compile: {e}")
             # logging.exception(e)
             return self._produce_batch()
 
@@ -230,7 +229,9 @@ class TreeDiffusionDataset(IterableDataset):
         )
 
         while True:
-            yield self._produce_batch()
+            batch = self._produce_batch()
+            print("bot batch")
+            yield batch
 
 
 def loss_fn(model, batch):
@@ -406,6 +407,7 @@ def main(argv):
     model.train()
 
     for batch in dataloader:
+        print("bott batch")
         batch = batch_to_torch(batch, FLAGS.device)
         loss, aux = loss_fn(model, batch)
 

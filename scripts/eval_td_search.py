@@ -37,8 +37,7 @@ flags.DEFINE_integer("num_replicas", 32, "Batch size for evaluation")
 flags.DEFINE_float("temperature", 0.7, "Temperature for sampling")
 flags.DEFINE_string("evaluation_dir", "evals", "Evaluations directory")
 flags.DEFINE_bool("wandb", True, "Log to wandb")
-# flags.DEFINE_string("device", "cuda", "Device to use")
-flags.DEFINE_string("device", "cpu", "Device to use")
+flags.DEFINE_string("device", "cuda", "Device to use")
 
 FLAGS = flags.FLAGS
 
@@ -57,8 +56,10 @@ class CPU_Unpickler(pickle.Unpickler):
 
 def ar_init(checkpoint_name, target_images):
     with open(checkpoint_name, "rb") as f:
-        # state = pickle.load(f)
-        state = CPU_Unpickler(f).load()
+        if torch.cuda.is_available():
+            state = pickle.load(f)
+        else:
+            state = CPU_Unpickler(f).load()
 
     config = state["config"]
 
@@ -369,8 +370,10 @@ def batched_beam_search(
 
 def load_model(checkpoint_name, device):
     with open(checkpoint_name, "rb") as f:
-        # state = pickle.load(f)
-        state = CPU_Unpickler(f).load()
+        if torch.cuda.is_available():
+            state = pickle.load(f)
+        else:
+            state = CPU_Unpickler(f).load()
 
     config = state["config"]
 
@@ -438,11 +441,9 @@ def main(argv):
     for i in tqdm.trange(len(target_expressions)):
         target_image = env.compile(target_expressions[i])
         target_image_torch = (
-            # torch.tensor(target_image[None]).float().permute(0, 3, 1, 2).to("cuda")
-            torch.tensor(target_image[None])
-            .float()
-            .permute(0, 3, 1, 2)
-            .to("cpu")
+            torch.tensor(target_image[None]).float().permute(0, 3, 1, 2).to("cuda")
+            if torch.cuda.is_available()
+            else torch.tensor(target_image[None]).float().permute(0, 3, 1, 2).to("cpu")
         )
         replicated_target_image = target_image_torch.repeat(64, 1, 1, 1)
 

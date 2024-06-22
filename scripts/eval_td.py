@@ -27,10 +27,10 @@ flags.DEFINE_integer("num_replicas", 1, "Batch size for evaluation")
 flags.DEFINE_float("temperature", 1.0, "Temperature for sampling")
 flags.DEFINE_string("evaluation_dir", "evals", "Evaluations directory")
 flags.DEFINE_bool("wandb", True, "Log to wandb")
-# flags.DEFINE_string("device", "cuda", "Device to use")
-flags.DEFINE_string("device", "cpu", "Device to use")
+flags.DEFINE_string("device", "cuda", "Device to use")
 
 FLAGS = flags.FLAGS
+
 
 class CPU_Unpickler(pickle.Unpickler):
     def find_class(self, module, name):
@@ -39,14 +39,17 @@ class CPU_Unpickler(pickle.Unpickler):
         else:
             return super().find_class(module, name)
 
+
 def generate_uuid():
     return str(uuid.uuid4())
 
 
 def load_model(checkpoint_name, device):
     with open(checkpoint_name, "rb") as f:
-        # state = pickle.load(f)
-        state = CPU_Unpickler(f).load()
+        if torch.cuda.is_available():
+            state = pickle.load(f)
+        else:
+            state = CPU_Unpickler(f).load()
 
     config = state["config"]
 
@@ -124,7 +127,9 @@ def create_generator(argv):
 
     with open(FLAGS.problem_filename, "rb") as f:
         # target_expressions = pickle.load(f)
-        target_expressions = ["(- (+ (Circle 1 F F) (+ (Circle 5 3 2) (Circle 3 6 8))) (Quad 5 5 5 5 H))"]
+        target_expressions = [
+            "(- (+ (Circle 1 F F) (+ (Circle 5 3 2) (Circle 3 6 8))) (Quad 5 5 5 5 H))"
+        ]
 
     target_images = np.array(
         [
@@ -223,7 +228,7 @@ def create_generator(argv):
 
             if steps_to_solve[problem_i] < np.inf:
                 break
-        
+
         np_iteration_images = np.array(iteration_images)
 
         logging.info(f"Saving images: {np_iteration_images.shape}")
@@ -241,8 +246,10 @@ def create_generator(argv):
                 f,
             )
 
+
 def main(argv):
     create_generator(argv)
+
 
 if __name__ == "__main__":
     app.run(main)
