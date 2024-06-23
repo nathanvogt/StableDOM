@@ -11,12 +11,12 @@ def main(env):
     html_dsl = """
 
 
-(Div (Style (Junct border: 2px green (Junct width: 100% height: 100%)))
+(Div (Style (Junct border: 2px green (Junct width: 100% height: 50%)))
 
 (Compose 
 
-(Div (Style (Junct border: 2px red width: 12%)) (P '12'))
-(Div (Style (Junct border: 2px blue width: 24%)) (P '24'))
+(Div (Style (Junct border: 2px red width: 50%)) (P '50'))
+(Div (Style (Junct border: 2px blue (Junct margin-left: auto (Junct margin-right: auto width: 50%)))) (P '24'))
 
 )
 

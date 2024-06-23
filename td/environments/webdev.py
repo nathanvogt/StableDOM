@@ -26,7 +26,12 @@ grammar_spec = r"""
     style_border: "border" ":" size unit color
     style_width: "width" ":" size unit
     style_height: "height" ":" size unit
-    style_pair: style_border | style_width | style_height
+    margin_value: size unit | "auto" -> auto
+    style_margin_top: "margin-top" ":" margin_value
+    style_margin_left: "margin-left" ":" margin_value
+    style_margin_right: "margin-right" ":" margin_value
+    style_margin_bottom: "margin-bottom" ":" margin_value
+    style_pair: style_border | style_width | style_height | style_margin_top | style_margin_left | style_margin_right | style_margin_bottom
 
     color: "red" -> red | "blue" -> blue | "green" -> green
     number: "0" -> zero | "1" -> one | "2" -> two | "3" -> three | "4" -> four | "5" -> five | "6" -> six | "7" -> seven | "8" -> eight | "9" -> nine | "A" -> ten | "B" -> eleven | "C" -> twelve | "D" -> thirteen | "E" -> fourteen | "F" -> fifteen | "12" -> twelve | "24" -> twentyfour | "36" -> thirtysix | "50" -> fifty | "100" -> hundred
@@ -65,6 +70,27 @@ class HTMLTransformer(Transformer):
 
     def style_element(self, children):
         return children[0]
+
+    def style_margin_top(self, children):
+        return f"margin-top: {children[0]}"
+
+    def style_margin_left(self, children):
+        return f"margin-left: {children[0]}"
+
+    def style_margin_right(self, children):
+        return f"margin-right: {children[0]}"
+
+    def style_margin_bottom(self, children):
+        return f"margin-bottom: {children[0]}"
+
+    def margin_value(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return f"{children[0]}{children[1]}"
+
+    def auto(self, _):
+        return "auto"
 
     def style(self, children):
         s = children[0]
@@ -259,6 +285,8 @@ class HTMLCompiler(Compiler):
             False,
             options={
                 "format": "png",
+                "height": _SCREEN_HEIGHT,
+                "width": _SCREEN_WIDTH,
                 "quiet": "",
             },
         )
