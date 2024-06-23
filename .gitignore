@@ -26,3 +26,4 @@ taming
 debug_path.py
 .iceberg
 evals/
+scripts/tries/

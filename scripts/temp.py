@@ -28,6 +28,42 @@ def main(env):
 (Div (Style (Junct border: 2px red (Junct margin-top: 50px width: 100%)))(Div (Style (Junct width: 24% (Junct height: 24px (Junct margin-left: auto margin-right: auto)))) (P '12'))))))
 )
 """
+    html_dsl = """
+(Div (Style (Junct border: 3px blue width: 100%))
+  (Compose
+    (Div (Style height: 50px)
+      (P '24'))
+    (Compose
+      (Div (Style (Junct width: 50% (Junct margin-left: auto margin-right: auto)))
+        (Compose
+          (Div (Style (Junct border: 2px red (Junct width: 36% margin-right: 5%)))
+            (Compose
+              (P '8')
+              (Div (Style height: 100px)
+                (P '36'))))
+          (Compose
+            (Div (Style (Junct border: 2px green (Junct width: 36% margin-right: 5%)))
+              (Compose
+                (P 'A')
+                (Div (Style height: 100px)
+                  (P '50'))))
+            (Div (Style (Junct border: 2px blue width: 36%))
+              (Compose
+                (P 'C')
+                (Div (Style height: 100px)
+                  (P '100')))))))
+      (Div (Style (Junct border: 3px green width: 100% margin-top: 24px))
+        (Compose
+          (P 'F')
+          (Compose
+            (Div (Style (Junct width: 36% height: 50px margin-right: 2px))
+              (P '1'))
+            (Compose
+              (Div (Style (Junct width: 36% height: 50px margin-right: 2px))
+                (P '2'))
+              (Div (Style (Junct width: 36% height: 50px))
+                (P '3')))))))))
+"""
     # html_dsl = [
     #     "(Div(Style(Junctborder:2pxgreenwidth:100%))(Compose(Div(Style(Junctborder:3pxbluewidth:100%))(P'12'))(Compose(Div(Stylemargin-left:36px)(P'F'))(Compose(Compose(Div(Style(Junctborder:2pxblue(Junctwidth:50%(Junctmargin-left:automargin-right:auto))))(Compose(P'100')(Compose(P'100')(Compose(P'5')(P'6')))))(Div(Style(Junctmargin-top:Bpx(Junctheight:100%margin-left:auto)))(P'8')))(Div(Style(Junctborder:2pxred(Junctmargin-top:50pxwidth:100%)))(Div(Style(Junctwidth:24%(Junctheight:24px(Junctmargin-left:automargin-right:auto))))(P'12')))))))",
     #     "(Div(Style(Junctborder:2pxgreenwidth:100%))(Compose(Div(Style(Junctborder:3pxbluewidth:100%))(P'12'))(Compose(Div(Stylemargin-left:36px)(P'F'))(Compose(Compose(Div(Style(Junctborder:2pxblue(Junctmargin-left:automargin-bottom:7%)))(Compose(P'100')(Compose(P'100')(P'100'))))(Div(Style(Junctheight:B%border:Apxblue))(P'8')))(Div(Style(Junctmargin-top:automargin-top:auto))(Div(Style(Junctwidth:24%(Junctheight:24px(Junctmargin-left:automargin-right:auto))))(P'12')))))))",
