@@ -27,8 +27,26 @@ flags.DEFINE_float("temperature", 1.0, "Temperature for sampling")
 flags.DEFINE_string("evaluation_dir", "evals", "Evaluations directory")
 flags.DEFINE_bool("wandb", True, "Log to wandb")
 flags.DEFINE_string("device", "cuda", "Device to use")
+flags.DEFINE_string("save_path", None, "Path to save the results")
 
 FLAGS = flags.FLAGS
+
+html_dsl = """
+(Div (Style (Junct border: 2px green width: 100%))
+(Compose
+(Div (Style (Junct border: 3px blue width: 100%)) (P '12'))
+(Compose 
+(Div (Style margin-left: 36px) (P 'F'))
+(Compose
+(Compose
+(Div (Style (Junct border: 2px blue (Junct width: 50% (Junct margin-left: auto margin-right: auto))))  (Compose (P '100') (Compose (P '100') (P '100'))))
+(Div (Style (Junct width: 24% (Junct margin-right: 8px margin-left: auto))) (P '8'))
+)
+(Div (Style (Junct border: 2px red (Junct margin-top: 50px width: 100%)))(Div (Style (Junct width: 24% (Junct height: 24px (Junct margin-left: auto margin-right: auto)))) (P '12'))))))
+)
+"""
+# strip newlines and whitespace from the DSL
+html_dsl = "".join(html_dsl.split())
 
 
 class CPU_Unpickler(pickle.Unpickler):
@@ -51,6 +69,8 @@ def load_model(checkpoint_name, device):
             state = CPU_Unpickler(f).load()
 
     config = state["config"]
+    # config["env"] = "html"
+    # print(config)
 
     env_name = config["env"]
     image_model = config["image_model"]
@@ -103,10 +123,10 @@ def create_generator(argv):
     td_model, env, tokenizer, sampler, target_observation, _ = load_model(
         FLAGS.checkpoint_name, FLAGS.device
     )
-    print(f"env: {env}")
-    ar_model, _, ar_tokenizer, _, ar_to, ar_config = load_model(
-        FLAGS.ar_checkpoint_name, FLAGS.device
-    )
+    # print(f"env: {env}")
+    # ar_model, _, ar_tokenizer, _, ar_to, ar_config = load_model(
+    #     FLAGS.ar_checkpoint_name, FLAGS.device
+    # )
 
     config = {
         "notes": "td-eval",
@@ -125,12 +145,13 @@ def create_generator(argv):
             config=config,
         )
 
-    with open(FLAGS.problem_filename, "rb") as f:
-        # target_expressions = ["(- (+ (Quad 4 0 F 4 G) (Quad C 0 F 4 G)) (Circle 1 2 1))"]
-        # target_expressions = ["(Arrange h (Rectangle 9 2 blue red 0 -4 +0) (Rectangle 9 2 blue red 0 +4 +0) 0)"]
-        target_expressions = [
-            "(Arrange v (Rectangle 9 2 blue white 1 +0 +0) (Arrange h (Rectangle 4 6 white black 1 +0 +0) (Rectangle 4 6 white black 1 +0 +0) 1) 1)"
-        ]
+    # with open(FLAGS.problem_filename, "rb") as f:
+    # target_expressions = ["(- (+ (Quad 4 0 F 4 G) (Quad C 0 F 4 G)) (Circle 1 2 1))"]
+    # target_expressions = ["(Arrange h (Rectangle 9 2 blue red 0 -4 +0) (Rectangle 9 2 blue red 0 +4 +0) 0)"]
+    # target_expressions = [
+    #     "(Arrange v (Ellipse 9 9 red none 0 +0 +0) (Arrange v (Ellipse 7 7 orange none 0 +0 +0) (Arrange v (Ellipse 5 5 yellow none 0 +0 +0) (Ellipse 3 3 green none 0 +0 +0) 3) 2) 1)"
+    # ]
+    target_expressions = [html_dsl]
 
     target_images = np.array(
         [
@@ -149,36 +170,16 @@ def create_generator(argv):
     logging.info(f"Problem {problem_i + 1} / {len(target_expressions)} ...")
 
     target_image_torch = target_images_torch[problem_i].unsqueeze(0)
-    # Replicate the target image to create a batch.
     batch_targets = target_image_torch.repeat(FLAGS.num_replicas, 1, 1, 1)
 
-    ar_predictions = ar_decoder(
-        ar_model,
-        env,
-        ar_tokenizer,
-        ar_config["num_image_tokens"],
-        batch_targets,
-        temperature=1.0,
-    )
-
-    # initial_expressions = list(set(ar_predictions))[: FLAGS.num_replicas]
-    # logging.info(f"Unique AR predictions: {len(initial_expressions)}")
-    # while len(initial_expressions) < FLAGS.num_replicas:
-    #     initial_expressions.append(sampler.sample(env.grammar.start_symbol))
-
-    # initial_expressions = ["(Quad 0 0 0 0 H)"]
-    initial_expressions = ["(Rectangle 0 0 red blue 0 +0 +0)"]
+    initial_expressions = [
+        # "(Div (Style (Junct border: 2px green width: 100%)) (P '12'))"
+        html_dsl
+    ]
 
     current_expressions = [x for x in initial_expressions]
     current_images = np.array([env.compile(e) for e in current_expressions])
     logging.info(f"shape {current_images.shape}")
-
-    # Did we already solve the problem?
-    # for image_i in range(len(current_images)):
-    #     if env.goal_reached(current_images[image_i], target_images[problem_i]):
-    #         logging.info(f"Problem already solved")
-    #         steps_to_solve[problem_i] = image_i + 1
-    #         break
 
     if steps_to_solve[problem_i] < np.inf:
         logging.info(f"Steps to solve: {steps_to_solve[problem_i]}")
@@ -192,7 +193,6 @@ def create_generator(argv):
                 f,
             )
 
-    # We've already spent replicas.
     current_steps = len(current_images)
     values = [-np.inf]
 
@@ -202,7 +202,7 @@ def create_generator(argv):
         nonlocal values
         nonlocal current_images
 
-        yield current_images
+        yield (current_images, current_expressions)
         for step_i in range(FLAGS.max_steps):
             logging.info(f"Step {step_i} / {FLAGS.max_steps} ... {max(values)}")
             mutations = sample_model_kv(
@@ -217,9 +217,15 @@ def create_generator(argv):
             current_expressions = [
                 m.apply(e) for m, e in zip(mutations, current_expressions)
             ]
-            current_images = np.array([env.compile(e) for e in current_expressions])
+            try:
+                current_images = np.array([env.compile(e) for e in current_expressions])
+            except:
+                print("current expressions:")
+                print(current_expressions)
+                # raise ValueError("Error in current expressions")
+                continue
 
-            yield current_images
+            yield (current_images, current_expressions)
 
             for image_i in range(len(current_images)):
                 if env.goal_reached(current_images[image_i], target_images[problem_i]):
@@ -235,11 +241,6 @@ def create_generator(argv):
 
             if steps_to_solve[problem_i] < np.inf:
                 break
-
-            # np_iteration_images = np.array(iteration_images)
-
-            # logging.info(f"Saving images: {np_iteration_images.shape}")
-            # np.save("evaluation_output", np_iteration_images)
 
             logging.info(f"Max val: {max(values)}")
             logging.info(f"Steps to solve: {steps_to_solve[problem_i]}")
@@ -257,16 +258,34 @@ def create_generator(argv):
 
 
 def main(argv):
+    import os
+    from td.environments.webdev import HTML, HTMLCompiler
+
+    html = HTML()
+    compiler = HTMLCompiler()
+    # print("main")
     image_generator = create_generator(argv)
-    visualize(image_generator)
-    # images = []
-    # for image in image_generator():
-    #     images.extend(image)
+    # visualize(image_generator)
+    # tries path
+    tries_path = "/Users/nathanvogt/tree-diffusion/scripts/tries"
+    starting_idx = (
+        max([int(x) for x in os.listdir(tries_path)]) if os.listdir(tries_path) else 0
+    )
+    for current_image, current_expression in image_generator():
+        html_expression = compiler.semi_compile(
+            html.grammar.parse(current_expression[0])
+        )
+        starting_idx += 1
+        current_dir = os.path.join(tries_path, str(starting_idx))
+        os.mkdir(current_dir)
+        import matplotlib.pyplot as plt
 
-    # np_iteration_images = np.array(images)
-
-    # logging.info(f"Saving images: {np_iteration_images.shape}")
-    # np.save("evaluation_output", np_iteration_images)
+        plt.imsave(os.path.join(current_dir, "image.png"), current_image[0])
+        np.save(os.path.join(current_dir, "image.npy"), current_image)
+        with open(os.path.join(current_dir, "expression.txt"), "w") as f:
+            f.write(current_expression[0])
+        with open(os.path.join(current_dir, "html_expression.txt"), "w") as f:
+            f.write(str(html_expression))
 
 
 if __name__ == "__main__":

@@ -104,7 +104,24 @@ class TreeDiffusionDataset(IterableDataset):
             target_expressions = []
 
             while len(target_expressions) < self._batch_size:
-                expression = self._env.sample_non_empty(sample_fn)
+                # expression = self._env.sample_non_empty(sample_fn)
+                html_dsl = """
+(Div (Style (Junct border: 2px green width: 100%))
+(Compose
+(Div (Style (Junct border: 3px blue width: 100%)) (P '12'))
+(Compose 
+(Div (Style margin-left: 36px) (P 'F'))
+(Compose
+(Compose
+(Div (Style (Junct border: 2px blue (Junct width: 50% (Junct margin-left: auto margin-right: auto))))  (Compose (P '100') (Compose (P '100') (P '100'))))
+(Div (Style (Junct width: 24% (Junct margin-right: 8px margin-left: auto))) (P '8'))
+)
+(Div (Style (Junct border: 2px red (Junct margin-top: 50px width: 100%)))(Div (Style (Junct width: 24% (Junct height: 24px (Junct margin-left: auto margin-right: auto)))) (P '12'))))))
+)
+"""
+                # strip newlines and whitespace from the DSL
+                html_dsl = "".join(html_dsl.split())
+                expression = html_dsl
                 target_expressions.append(expression)
 
             steps = [
@@ -162,7 +179,8 @@ class TreeDiffusionDataset(IterableDataset):
             # logging.warning(f"Failed to compile: {e}")
             # logging.exception(e)
             return self._produce_batch()
-
+        # print("training examples")
+        # print(training_examples)
         tokenized = []
         context_tokens_mask = []
         for mutated_expression, reverse_mutation in training_examples:
@@ -229,7 +247,8 @@ class TreeDiffusionDataset(IterableDataset):
         )
 
         while True:
-            yield self._produce_batch()
+            batch = self._produce_batch()
+            yield batch
             # yield None
 
 

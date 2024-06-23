@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def visualize(image_generator):
     plt.ion()
     fig, ax = plt.subplots()
@@ -8,5 +9,5 @@ def visualize(image_generator):
     for image in image_generator():
         ax.imshow(image[0])
         plt.draw()
-        plt.pause(0.5)
+        plt.pause(1)
         ax.clear()

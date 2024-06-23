@@ -15,7 +15,7 @@ grammar_spec = r"""
     compose: "(" "Compose" element element ")"
     element: paragraph | div | compose
     paragraph: "(" "P" "'" text "'" ")"
-    // (Div x y style element)
+    // (Div style element)
     div: "(" "Div" style element ")"
     //TEXT: /[a-zA-Z0-9\s]+/
     text: number -> loremipsum
@@ -275,6 +275,10 @@ class HTMLCompiler(Compiler):
     #     # print("compile array shape")
     #     return image_array / 255.0
     #     # return np.load("/Users/nathanvogt/tree-diffusion/html.npy")
+    def semi_compile(self, expression: Tree):
+        content = self._expression_to_html.transform(expression)
+        html = f"<html><body>{content}</body></html>"
+        return html
 
     def compile(self, expression: Tree):
         content = self._expression_to_html.transform(expression)
@@ -331,7 +335,7 @@ class HTML(Environment):
         self._grammar = Grammar(
             grammar_spec,
             start="element",
-            primitives=["paragraph", "div", "style_element"],
+            primitives=["element", "style_junct"],
         )
         self._compiler = HTMLCompiler()
         self._goal_checker = GaussianImageGoalChecker(self.compiled_shape)
