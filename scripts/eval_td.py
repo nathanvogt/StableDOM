@@ -103,6 +103,7 @@ def create_generator(argv):
     td_model, env, tokenizer, sampler, target_observation, _ = load_model(
         FLAGS.checkpoint_name, FLAGS.device
     )
+    print(f"env: {env}")
     ar_model, _, ar_tokenizer, _, ar_to, ar_config = load_model(
         FLAGS.ar_checkpoint_name, FLAGS.device
     )
@@ -126,8 +127,10 @@ def create_generator(argv):
 
     with open(FLAGS.problem_filename, "rb") as f:
         # target_expressions = ["(- (+ (Quad 4 0 F 4 G) (Quad C 0 F 4 G)) (Circle 1 2 1))"]
-        target_expressions = ["(Arrange h (Rectangle 9 2 blue red 0 -4 +0) (Rectangle 9 2 blue red 0 +4 +0) 0)"]
-
+        # target_expressions = ["(Arrange h (Rectangle 9 2 blue red 0 -4 +0) (Rectangle 9 2 blue red 0 +4 +0) 0)"]
+        target_expressions = [
+            "(Arrange v (Rectangle 9 2 blue white 1 +0 +0) (Arrange h (Rectangle 4 6 white black 1 +0 +0) (Rectangle 4 6 white black 1 +0 +0) 1) 1)"
+        ]
 
     target_images = np.array(
         [
@@ -198,7 +201,7 @@ def create_generator(argv):
         nonlocal current_expressions
         nonlocal values
         nonlocal current_images
-        
+
         yield current_images
         for step_i in range(FLAGS.max_steps):
             logging.info(f"Step {step_i} / {FLAGS.max_steps} ... {max(values)}")
@@ -232,7 +235,7 @@ def create_generator(argv):
 
             if steps_to_solve[problem_i] < np.inf:
                 break
-    
+
             # np_iteration_images = np.array(iteration_images)
 
             # logging.info(f"Saving images: {np_iteration_images.shape}")
@@ -249,6 +252,7 @@ def create_generator(argv):
                     },
                     f,
                 )
+
     return step
 
 
@@ -263,7 +267,6 @@ def main(argv):
 
     # logging.info(f"Saving images: {np_iteration_images.shape}")
     # np.save("evaluation_output", np_iteration_images)
-
 
 
 if __name__ == "__main__":
