@@ -3,6 +3,9 @@ from absl import app
 from absl import flags
 from absl import logging
 
+import base64
+from PIL import Image
+
 from td.environments import Environment, environments
 from td.learning.tokenizer import Tokenizer
 from td.learning.gpt import TreeDiffusion, TransformerConfig
@@ -17,18 +20,29 @@ import uuid
 import wandb
 import torch
 
-flags.DEFINE_string("checkpoint_name", None, "Path to the checkpoint to evaluate")
-flags.DEFINE_string("ar_checkpoint_name", None, "Path to the AR checkpoint.")
-flags.DEFINE_string("problem_filename", None, "Number of problems to evaluate")
-flags.DEFINE_integer("max_steps", 100, "Maximum number of steps to take")
-flags.DEFINE_integer("evaluation_batch_size", 16, "Batch size for evaluation")
-flags.DEFINE_integer("num_replicas", 1, "Batch size for evaluation")
-flags.DEFINE_float("temperature", 1.0, "Temperature for sampling")
-flags.DEFINE_string("evaluation_dir", "evals", "Evaluations directory")
-flags.DEFINE_bool("wandb", True, "Log to wandb")
-flags.DEFINE_string("device", "cuda", "Device to use")
+# DEFINE_string("checkpoint_name", None, "Path to the checkpoint to evaluate")
+# DEFINE_string("ar_checkpoint_name", None, "Path to the AR checkpoint.")
+# DEFINE_string("problem_filename", None, "Number of problems to evaluate")
+# DEFINE_integer("max_steps", 100, "Maximum number of steps to take")
+# DEFINE_integer("evaluation_batch_size", 16, "Batch size for evaluation")
+# DEFINE_integer("num_replicas", 1, "Batch size for evaluation")
+# DEFINE_float("temperature", 1.0, "Temperature for sampling")
+# DEFINE_string("evaluation_dir", "evals", "Evaluations directory")
+# DEFINE_bool("wandb", True, "Log to wandb")
+# DEFINE_string("device", "cuda", "Device to use")
 
-FLAGS = flags.FLAGS
+checkpoint_name = "assets/td_csg2da.pt"
+ar_checkpoint_name = "assets/ar_csg2da.pt"
+problem_filename = "assets/csg2da_test_set.pkl"
+max_steps = 100
+evaluation_batch_size = 16
+num_replicas = 1
+temperature = 1.0
+evaluation_dir = "evals"
+wandb_log = True
+device = "cpu"
+
+
 
 
 class CPU_Unpickler(pickle.Unpickler):
@@ -89,55 +103,52 @@ def load_model(checkpoint_name, device):
     return model, env, tokenizer, sampler, target_observation, config
 
 
-def create_generator(argv):
-    logging.info(f"Evaluating {FLAGS.checkpoint_name}")
+def create_generator(initial_img):
+    logging.info(f"Evaluating {checkpoint_name}")
 
-    if not os.path.exists(FLAGS.evaluation_dir):
-        os.makedirs(FLAGS.evaluation_dir)
+    if not os.path.exists(evaluation_dir):
+        os.makedirs(evaluation_dir)
 
     local_run_id = generate_uuid()
     logging.info(f"Local run id: {local_run_id}")
 
-    save_filename = os.path.join(FLAGS.evaluation_dir, f"{local_run_id}.pkl")
+    save_filename = os.path.join(evaluation_dir, f"{local_run_id}.pkl")
 
     td_model, env, tokenizer, sampler, target_observation, _ = load_model(
-        FLAGS.checkpoint_name, FLAGS.device
+        checkpoint_name, device
     )
     ar_model, _, ar_tokenizer, _, ar_to, ar_config = load_model(
-        FLAGS.ar_checkpoint_name, FLAGS.device
+        ar_checkpoint_name, device
     )
 
     config = {
         "notes": "td-eval",
-        "temperature": FLAGS.temperature,
-        "max_steps": FLAGS.max_steps,
-        "evaluation_batch_size": FLAGS.evaluation_batch_size,
-        "checkpoint_name": FLAGS.checkpoint_name,
+        "temperature": temperature,
+        "max_steps": max_steps,
+        "evaluation_batch_size": evaluation_batch_size,
+        "checkpoint_name": checkpoint_name,
         "local_run_id": local_run_id,
-        "ar_checkpoint_name": FLAGS.ar_checkpoint_name,
-        "num_replicas": FLAGS.num_replicas,
+        "ar_checkpoint_name": ar_checkpoint_name,
+        "num_replicas": num_replicas,
     }
 
-    if FLAGS.wandb:
+    if wandb:
         wandb.init(
             project="tree-diffusion",
             config=config,
         )
 
-    with open(FLAGS.problem_filename, "rb") as f:
-        # target_expressions = ["(- (+ (Quad 4 0 F 4 G) (Quad C 0 F 4 G)) (Circle 1 2 1))"]
-        target_expressions = ["(Arrange h (Rectangle 9 2 blue red 0 -4 +0) (Rectangle 9 2 blue red 0 +4 +0) 0)"]
+    with open(problem_filename, "rb") as f:
+        target_expressions = ["(+ (- (Circle 8 8 8) (Circle 5 8 8)) (- (Quad 8 8 4 4 H) (Circle 1 8 8)))"]
+        # target_expressions = ["(Arrange h (Arrange h (Rectangle 9 2 blue red 0 -4 +0) (Rectangle 9 2 blue red 0 -9 +0) 0) (Rectangle 9 2 blue red 0 +4 +0) 0)"]
 
 
-    target_images = np.array(
-        [
-            env.compile(e) if not target_observation else env.compile_observation(e)
-            for e in target_expressions
-        ]
-    )
+    decoded_img = base64.b64decode(initial_img)
+    img = Image.open(io.BytesIO(decoded_img))
+    target_images = np.array(img)
 
     target_images_torch = (
-        torch.tensor(target_images).to(FLAGS.device).float().permute(0, 3, 1, 2)
+        torch.tensor(target_images).to(device).float().permute(0, 3, 1, 2)
     )
 
     steps_to_solve = np.zeros(len(target_expressions)) + np.inf
@@ -147,7 +158,7 @@ def create_generator(argv):
 
     target_image_torch = target_images_torch[problem_i].unsqueeze(0)
     # Replicate the target image to create a batch.
-    batch_targets = target_image_torch.repeat(FLAGS.num_replicas, 1, 1, 1)
+    batch_targets = target_image_torch.repeat(num_replicas, 1, 1, 1)
 
     ar_predictions = ar_decoder(
         ar_model,
@@ -158,13 +169,13 @@ def create_generator(argv):
         temperature=1.0,
     )
 
-    # initial_expressions = list(set(ar_predictions))[: FLAGS.num_replicas]
+    # initial_expressions = list(set(ar_predictions))[: num_replicas]
     # logging.info(f"Unique AR predictions: {len(initial_expressions)}")
-    # while len(initial_expressions) < FLAGS.num_replicas:
+    # while len(initial_expressions) < num_replicas:
     #     initial_expressions.append(sampler.sample(env.grammar.start_symbol))
 
-    # initial_expressions = ["(Quad 0 0 0 0 H)"]
-    initial_expressions = ["(Rectangle 0 0 red blue 0 +0 +0)"]
+    initial_expressions = ["(Quad 0 0 0 0 H)"]
+    # initial_expressions = ["(Rectangle 0 0 red blue 0 +0 +0)"]
 
     current_expressions = [x for x in initial_expressions]
     current_images = np.array([env.compile(e) for e in current_expressions])
@@ -199,16 +210,16 @@ def create_generator(argv):
         nonlocal values
         nonlocal current_images
         
-        yield current_images
-        for step_i in range(FLAGS.max_steps):
-            logging.info(f"Step {step_i} / {FLAGS.max_steps} ... {max(values)}")
+        yield (current_expressions, current_images)
+        for step_i in range(max_steps):
+            logging.info(f"Step {step_i} / {max_steps} ... {max(values)}")
             mutations = sample_model_kv(
                 td_model,
                 env,
                 tokenizer,
                 current_expressions,
                 batch_targets,
-                temperature=FLAGS.temperature,
+                temperature=temperature,
             )
 
             current_expressions = [
@@ -216,7 +227,7 @@ def create_generator(argv):
             ]
             current_images = np.array([env.compile(e) for e in current_expressions])
 
-            yield current_images
+            yield (current_expressions, current_images)
 
             for image_i in range(len(current_images)):
                 if env.goal_reached(current_images[image_i], target_images[problem_i]):
@@ -251,20 +262,20 @@ def create_generator(argv):
                 )
     return step
 
+def make_main(update_step, initial_img):
+    def main():
+        step_generator = create_generator(initial_img)
+        for expression, image in step_generator():
+            pil_img = Image.fromarray(image.astype(np.uint8))
+            buffer = io.BytesIO()
+            pil_img.save(buffer, format="PNG")
+            img_str = base64.b64encode(buffer.getvalue()).decode()
+            if update_step: update_step({"expression": expression, "image": img_str})
+    return main
 
-def main(argv):
-    image_generator = create_generator(argv)
-    visualize(image_generator)
-    # images = []
-    # for image in image_generator():
-    #     images.extend(image)
-
-    # np_iteration_images = np.array(images)
-
-    # logging.info(f"Saving images: {np_iteration_images.shape}")
-    # np.save("evaluation_output", np_iteration_images)
-
-
+def default_main():
+    step_generator = create_generator()
+    visualize(step_generator)
 
 if __name__ == "__main__":
-    app.run(main)
+    app.run(default_main)

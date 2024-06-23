@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import "./App.css";
 import { Home } from "./home";
 
@@ -24,7 +24,7 @@ function App() {
 
   return (
     <div className="App">
-      {targetImageFile ? <Home targetImage={targetImageFile} /> : upload}
+      {targetImageFile ? <Home targetImage={targetImageFile} setTargetImage={setTargetImageFile} /> : upload}
     </div>
   );
 }
