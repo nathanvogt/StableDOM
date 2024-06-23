@@ -38,7 +38,7 @@ def main(env):
 """
 
     csg2da_dsl = """
-(+ (- (Circle 8 8 8) (Circle 5 8 8)) (- (Quad 8 8 4 4 H) (Circle 1 8 8)))
+(+ (- (Circle 8 6 8) (Circle 5 8 8)) (- (Circle 2 9 A) (Quad 9 A 2 2 H)))
 """
 
     tinysvgoffset_dsl = """
@@ -58,16 +58,32 @@ def main(env):
         )
     )
 
-    img = env.compile(dsl)
-    print(img.shape)
-    plt.imshow(img)
-    plt.axis("off")
-    plt.show()
+    # ion for interactive (archived)
+    plt.ion()
+    fig, ax = plt.subplots()
+
+    # uncomment for single render
+    # img = env.compile(dsl)
+    # ax.imshow(img)
+    # ax.set_title(dsl)
+    # plt.draw()
+    # plt.show()
+
+    dsl1 = ['(Circle 0 0 0)', '(+ (Quad 3 E D C N) (Quad 9 B E 1 N))', '(+ (- (Circle 8 6 8) (Circle 5 8 9)) (Quad 9 B E 1 N))', '(+ (- (Circle 8 6 8) (Circle 5 8 9)) (- (Circle 3 9 9) (Quad 9 A 2 2 L)))', '(+ (- (Circle 8 6 8) (Circle 5 8 9)) (- (Circle 2 9 9) (Quad 9 A 2 2 L)))', '(+ (- (Circle 8 6 8) (Circle 5 8 8)) (- (Circle 2 9 9) (Quad 9 A 2 2 L)))', '(+ (- (Circle 8 6 8) (Circle 5 8 8)) (- (Circle 2 9 A) (Quad 9 A 2 2 L)))']
+    dsl2 = ['(Circle 0 0 0)', '(- (Quad F 5 9 3 M) (Circle 7 B 8))', '(- (Quad F 5 9 3 M) (+ (Circle E E F) (Quad 4 7 E 5 L)))', '(- (+ (Circle 8 6 8) (Quad 5 6 7 2 I)) (+ (Circle E E F) (Quad 4 7 E 5 L)))', '(- (+ (Circle 8 6 8) (Quad 5 6 7 2 I)) (+ (Circle E E F) (Circle 2 9 9)))', '(- (+ (Circle 8 6 8) (Quad 5 6 7 2 I)) (+ (- (Circle 6 7 8) (Quad 9 A 2 2 H)) (Circle 2 9 9)))', '(- (+ (Circle 8 6 8) (Quad 5 6 7 2 I)) (+ (- (Circle 6 8 8) (Quad 9 A 2 2 H)) (Circle 2 9 9)))', '(- (+ (Circle 8 6 8) (Quad 5 6 7 2 I)) (+ (- (Circle 6 7 8) (Quad 9 A 2 2 H)) (Circle 2 9 9)))', '(- (+ (Circle 8 6 8) (Quad 5 6 7 2 I)) (+ (- (Circle 5 7 8) (Quad 9 A 2 2 H)) (Circle 2 9 9)))', '(- (+ (Circle 8 6 8) (Quad 5 6 7 2 I)) (+ (- (Circle 5 8 8) (Quad 9 A 2 2 H)) (Circle 2 9 9)))', '(- (+ (Circle 8 6 8) (Quad 5 6 7 2 I)) (+ (- (Circle 5 8 8) (Quad 9 A 2 2 H)) (Circle 2 9 A)))', '(+ (- (Circle 8 6 8) (Circle 5 8 8)) (- (Circle 2 9 A) (Quad 9 9 3 1 H)))', '(+ (- (Circle 8 6 8) (Circle 5 8 8)) (- (Circle 2 9 A) (Quad 9 A 2 2 H)))']
+    dsl3 = ['(Circle 0 0 0)', '(+ (Circle 8 F D) (Circle 2 9 A))', '(+ (- (Quad 4 0 4 4 I) (Circle 3 B 3)) (Circle 2 9 A))', '(+ (- (- (Circle 8 6 8) (Circle 3 8 8)) (Circle 3 B 3)) (Circle 2 9 A))', '(+ (- (- (Circle 8 6 8) (Circle 3 8 8)) (Circle 5 B 3)) (Circle 2 9 A))', '(+ (- (- (Circle 8 6 8) (Circle 3 8 8)) (Quad F C 6 6 N)) (Circle 2 9 A))', '(+ (- (- (Circle 8 6 8) (Circle 3 8 8)) (Circle 5 8 8)) (Circle 2 9 A))']
+    for dsl in dsl2:
+        img = env.compile(dsl)
+        ax.imshow(img)
+        ax.set_title(dsl)
+        plt.draw()
+        plt.pause(1)
+        ax.clear()
 
 
 if __name__ == "__main__":
     import sys
 
-    env = sys.argv[1] if len(sys.argv) > 1 else "html"
+    env = sys.argv[1] if len(sys.argv) > 1 else "csg2da"
 
     main(env)

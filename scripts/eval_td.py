@@ -155,7 +155,10 @@ def create_generator(initial_img):
     #     "(Arrange v (Ellipse 9 9 red none 0 +0 +0) (Arrange v (Ellipse 7 7 orange none 0 +0 +0) (Arrange v (Ellipse 5 5 yellow none 0 +0 +0) (Ellipse 3 3 green none 0 +0 +0) 3) 2) 1)"
     
     # target_expressions = [html_dsl]
-    target_expressions = ["(+ (- (Circle 8 8 8) (Circle 5 8 8)) (- (Quad 8 8 4 4 H) (Circle 1 8 8)))"]
+
+    hard = ["(+ (- (Circle 8 6 8) (Circle 5 8 8)) (- (Circle 2 9 A) (Quad 9 A 2 2 H)))"]
+    easy = ["(+ (- (Circle 8 6 8) (Circle 5 8 8)) (Circle 2 9 A))"]
+    target_expressions = easy
 
     target_images = np.array(
         [
@@ -207,7 +210,8 @@ def create_generator(initial_img):
         nonlocal values
         nonlocal current_images
 
-        yield current_images
+        yield (target_expressions, target_images)
+        yield (current_expressions, current_images)
         for step_i in range(FLAGS.max_steps):
             logging.info(f"Step {step_i} / {FLAGS.max_steps} ... {max(values)}")
             mutations = sample_model_kv(
@@ -230,7 +234,7 @@ def create_generator(initial_img):
                 # raise ValueError("Error in current expressions")
                 continue
 
-            yield current_images
+            yield (current_expressions, current_images)
 
             for image_i in range(len(current_images)):
                 if env.goal_reached(current_images[image_i], target_images[problem_i]):
@@ -269,8 +273,8 @@ def main(argv):
     # html = HTML()
     # compiler = HTMLCompiler()
     # print("main")
-    image_generator = create_generator(argv)
-    visualize(image_generator)
+    step_generator = create_generator(argv)
+    visualize(step_generator)
     # tries path
     # tries_path = "/Users/nathanvogt/tree-diffusion/scripts/tries"
     # starting_idx = (
