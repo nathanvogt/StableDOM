@@ -153,8 +153,9 @@ def create_generator(initial_img):
     # target_expressions = ["(Arrange h (Rectangle 9 2 blue red 0 -4 +0) (Rectangle 9 2 blue red 0 +4 +0) 0)"]
     # target_expressions = [
     #     "(Arrange v (Ellipse 9 9 red none 0 +0 +0) (Arrange v (Ellipse 7 7 orange none 0 +0 +0) (Arrange v (Ellipse 5 5 yellow none 0 +0 +0) (Ellipse 3 3 green none 0 +0 +0) 3) 2) 1)"
-    # ]
-    target_expressions = [html_dsl]
+    
+    # target_expressions = [html_dsl]
+    target_expressions = ["(+ (- (Circle 8 8 8) (Circle 5 8 8)) (- (Quad 8 8 4 4 H) (Circle 1 8 8)))"]
 
     target_images = np.array(
         [
@@ -177,7 +178,8 @@ def create_generator(initial_img):
 
     initial_expressions = [
         # "(Div (Style (Junct border: 2px green width: 100%)) (P '12'))"
-        html_dsl
+        # html_dsl
+        "(Circle 0 0 0)"
     ]
 
     current_expressions = [x for x in initial_expressions]

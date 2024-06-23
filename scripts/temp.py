@@ -38,7 +38,7 @@ def main(env):
 """
 
     csg2da_dsl = """
-//PUT YOUR DSL CODE HERE
+(+ (- (Circle 8 8 8) (Circle 5 8 8)) (- (Quad 8 8 4 4 H) (Circle 1 8 8)))
 """
 
     tinysvgoffset_dsl = """
