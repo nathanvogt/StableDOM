@@ -27,7 +27,7 @@ def main(env):
 
 """
     csg2d_dsl = """
-(+ (Circle 1 0 0) (Circle 2 2 2))
+(+ (- (Circle 8 8 8) (Circle 5 8 8)) (Quad 8 8 4 4 H))
 """
 
     csg2da_dsl = """
@@ -41,8 +41,7 @@ def main(env):
 
     img = env.compile(dsl)
     print(img.shape)
-
-    plt.imshow(img)
+    plt.imshow(img, cmap="gray")
     plt.axis("off")
     plt.show()
 

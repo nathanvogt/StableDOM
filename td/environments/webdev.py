@@ -331,7 +331,7 @@ class HTML(Environment):
         self._grammar = Grammar(
             grammar_spec,
             start="element",
-            primitives=["paragraph", "style_element"],
+            primitives=["paragraph", "div", "style_element"],
         )
         self._compiler = HTMLCompiler()
         self._goal_checker = GaussianImageGoalChecker(self.compiled_shape)
