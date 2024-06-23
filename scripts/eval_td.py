@@ -113,18 +113,18 @@ def load_model(checkpoint_name, device):
 
 
 def create_generator(initial_img):
-    logging.info(f"Evaluating {checkpoint_name}")
+    logging.info(f"Evaluating {FLAGS.checkpoint_name}")
 
-    if not os.path.exists(evaluation_dir):
-        os.makedirs(evaluation_dir)
+    if not os.path.exists(FLAGS.evaluation_dir):
+        os.makedirs(FLAGS.evaluation_dir)
 
     local_run_id = generate_uuid()
     logging.info(f"Local run id: {local_run_id}")
 
-    save_filename = os.path.join(evaluation_dir, f"{local_run_id}.pkl")
+    save_filename = os.path.join(FLAGS.evaluation_dir, f"{local_run_id}.pkl")
 
     td_model, env, tokenizer, sampler, target_observation, _ = load_model(
-        checkpoint_name, device
+        FLAGS.checkpoint_name, FLAGS.device
     )
     # print(f"env: {env}")
     # ar_model, _, ar_tokenizer, _, ar_to, ar_config = load_model(
@@ -133,13 +133,13 @@ def create_generator(initial_img):
 
     config = {
         "notes": "td-eval",
-        "temperature": temperature,
-        "max_steps": max_steps,
-        "evaluation_batch_size": evaluation_batch_size,
-        "checkpoint_name": checkpoint_name,
+        "temperature": FLAGS.temperature,
+        "max_steps": FLAGS.max_steps,
+        "evaluation_batch_size": FLAGS.evaluation_batch_size,
+        "checkpoint_name": FLAGS.checkpoint_name,
         "local_run_id": local_run_id,
-        "ar_checkpoint_name": ar_checkpoint_name,
-        "num_replicas": num_replicas,
+        "ar_checkpoint_name": FLAGS.ar_checkpoint_name,
+        "num_replicas": FLAGS.num_replicas,
     }
 
     if wandb:
@@ -164,7 +164,7 @@ def create_generator(initial_img):
     )
 
     target_images_torch = (
-        torch.tensor(target_images).to(device).float().permute(0, 3, 1, 2)
+        torch.tensor(target_images).to(FLAGS.device).float().permute(0, 3, 1, 2)
     )
 
     steps_to_solve = np.zeros(len(target_expressions)) + np.inf
@@ -214,7 +214,7 @@ def create_generator(initial_img):
                 tokenizer,
                 current_expressions,
                 batch_targets,
-                temperature=temperature,
+                temperature=FLAGS.temperature,
             )
 
             current_expressions = [
@@ -292,4 +292,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    app.run(default_main)
+    app.run(main)
