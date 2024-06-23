@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 type Props = {};
 
@@ -36,21 +36,39 @@ const html_expressions = [
   "<html><body><div style='border: 2px solid green; width: 100%'><div style='border: 3px solid blue; width: 100%'><p>Lorem IpsumL</p></div><div style='margin-left: 36px'><p>Lorem IpsumLore</p></div><div style='border: 2px solid blue; width: 50%; margin-left: auto; margin-right: auto'><p>Lorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumL</p><p>Lorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumL</p></div><div style='width: 24%; margin-right: 8px; margin-left: auto'><p>Lorem Ip</p></div><div style='border: 2px solid red; margin-top: 50px; width: 100%'><div style='width: 24%; height: 24px; margin-left: auto; margin-right: auto'><p>Lorem IpsumL</p></div></div></div></body></html>",
   "<html><body><div style='border: 2px solid green; width: 100%'><div style='border: 3px solid blue; width: 100%'><p>Lorem IpsumL</p></div><div style='margin-left: 36px'><p>Lorem IpsumLore</p></div><div style='border: 2px solid blue; width: 50%; margin-left: auto; margin-right: auto'><p>Lorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumL</p><p>Lorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumL</p><p>Lorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumL</p></div><div style='width: 24%; margin-right: 8px; margin-left: auto'><p>Lorem Ip</p></div><div style='border: 2px solid red; margin-top: 50px; width: 100%'><div style='width: 24%; height: 24px; margin-left: auto; margin-right: auto'><p>Lorem IpsumL</p></div></div></div></body></html>",
 ];
-
 export function Home({}: Props) {
   const imageUrl = "/html_target.png";
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isStarted, setIsStarted] = useState(false);
   const intervalTime = 1500;
-  const initialDelay = 2000;
+
+  const handleKeyPress = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.code === "Space" && !isStarted) {
+        setIsStarted(true);
+      }
+    },
+    [isStarted]
+  );
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setCurrentIndex((prevIndex) =>
-        Math.min(prevIndex + 1, expressions.length - 1)
-      );
-    }, intervalTime);
+    window.addEventListener("keydown", handleKeyPress);
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [handleKeyPress]);
+
+  useEffect(() => {
+    let intervalId: number;
+    if (isStarted) {
+      intervalId = setInterval(() => {
+        setCurrentIndex((prevIndex) =>
+          Math.min(prevIndex + 1, expressions.length - 1)
+        );
+      }, intervalTime);
+    }
     return () => clearInterval(intervalId);
-  }, []);
+  }, [isStarted]);
 
   useEffect(() => {
     console.log("Current Index: ", currentIndex);
@@ -61,24 +79,21 @@ export function Home({}: Props) {
       style={{
         display: "flex",
         width: "100%",
-        height: "100vh",
-        overflow: "hidden",
       }}
     >
       <div
         style={{
-          width: "50%",
+          width: "40%",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          padding: "10px",
         }}
       >
         <div
-          style={{ marginBottom: "10px", textAlign: "center", width: "100%" }}
+          style={{ marginBottom: "0px", textAlign: "center", width: "100%" }}
         >
-          <div style={{ fontSize: "20px", marginBottom: "10px" }}>
+          <div style={{ fontSize: "16px", marginBottom: "0px" }}>
             Target Image
           </div>
           <img
@@ -94,10 +109,10 @@ export function Home({}: Props) {
         <div
           style={{
             width: "100%",
-            padding: "10px",
+            // padding: "10px",
             fontFamily: "'Courier New', monospace",
-            fontSize: "16px",
-            whiteSpace: "pre-wrap",
+            fontSize: "12px",
+            whiteSpace: "wrap",
             backgroundColor: "#f4f4f4",
             borderRadius: "8px",
             marginBottom: "10px",
@@ -112,10 +127,10 @@ export function Home({}: Props) {
         <div
           style={{
             width: "100%",
-            padding: "10px",
+            // padding: "10px",
             fontFamily: "'Courier New', monospace",
-            fontSize: "16px",
-            whiteSpace: "pre-wrap",
+            fontSize: "12px",
+            whiteSpace: "wrap",
             backgroundColor: "#fff",
             borderRadius: "8px",
           }}
@@ -128,13 +143,17 @@ export function Home({}: Props) {
       </div>
       <div
         style={{
-          width: "50%",
+          width: "60%",
           height: "90vh",
           padding: "10px",
           borderRadius: "8px",
+          border: "1px solid #ddd",
+          overflow: "hidden",
         }}
       >
-        <div style={{ fontSize: "16px" }}>Rendered HTML</div>
+        <div style={{ fontSize: "16px", textAlign: "center" }}>
+          Rendered HTML
+        </div>
         <div
           dangerouslySetInnerHTML={{ __html: html_expressions[currentIndex] }}
         ></div>

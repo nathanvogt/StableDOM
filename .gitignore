@@ -12,7 +12,6 @@ animations/
 wandb/
 .iceberg
 *.pdf
-*.png
 .vscode
 *.*prof
 .hypothesis
