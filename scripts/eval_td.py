@@ -31,6 +31,7 @@ flags.DEFINE_string("evaluation_dir", "evals", "Evaluations directory")
 flags.DEFINE_bool("wandb", True, "Log to wandb")
 flags.DEFINE_string("device", "cuda", "Device to use")
 flags.DEFINE_string("save_path", None, "Path to save the results")
+flags.DEFINE_string("difficulty", "easy", "difficulty of the problem (for demo)")
 
 FLAGS = flags.FLAGS
 
@@ -153,12 +154,12 @@ def create_generator(initial_img):
     # target_expressions = ["(Arrange h (Rectangle 9 2 blue red 0 -4 +0) (Rectangle 9 2 blue red 0 +4 +0) 0)"]
     # target_expressions = [
     #     "(Arrange v (Ellipse 9 9 red none 0 +0 +0) (Arrange v (Ellipse 7 7 orange none 0 +0 +0) (Arrange v (Ellipse 5 5 yellow none 0 +0 +0) (Ellipse 3 3 green none 0 +0 +0) 3) 2) 1)"
-    
+
     # target_expressions = [html_dsl]
 
     hard = ["(+ (- (Circle 8 6 8) (Circle 5 8 8)) (- (Circle 2 9 A) (Quad 9 A 2 2 H)))"]
     easy = ["(+ (- (Circle 8 6 8) (Circle 5 8 8)) (Circle 2 9 A))"]
-    target_expressions = hard
+    target_expressions = easy if FLAGS.difficulty == "easy" else hard
 
     target_images = np.array(
         [
