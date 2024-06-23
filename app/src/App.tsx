@@ -22,11 +22,7 @@ function App() {
     </>
   );
 
-  return (
-    <div className="App">
-      {targetImageFile ? <Home targetImage={targetImageFile} setTargetImage={setTargetImageFile} /> : upload}
-    </div>
-  );
+  return <Home />;
 }
 
 export default App;

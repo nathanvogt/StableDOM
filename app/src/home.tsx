@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { formatExpression } from "./format";
 
-type Props = {
-  targetImage: File | null;
-  setTargetImage: React.Dispatch<React.SetStateAction<File | null>>;
-};
+type Props = {};
 
 const expressions = [
   "(Div(Style(Junctborder:2pxgreenwidth:100px))(Compose(Div(Style(Junct(Junctwidth:24px(Junctmargin-top:auto(Junct(Junctmargin-left:B%(Junctwidth:24px(Junct(Junctborder:8pxredmargin-left:3px)(Junctwidth:2pxwidth:50%))))(Junctwidth:2pxmargin-left:2px))))(Junctmargin-right:24%(Junctborder:100%redmargin-left:auto))))(P'12'))(Compose(Div(Stylemargin-left:36px)(P'F'))(Compose(Compose(Div(Style(Junctborder:2pxblue(Junctborder:50%green(Junctmargin-left:automargin-right:auto))))(Compose(P'100')(Compose(P'100')(P'100'))))(Div(Style(Junctwidth:24%(Junctmargin-right:8pxmargin-left:7px)))(P'8')))(Div(Style(Junctborder:2pxred(Junctmargin-top:50pxwidth:100%)))(Div(Style(Junctwidth:24%(Junctheight:24px(Junctmargin-left:automargin-right:auto))))(P'12')))))))",
@@ -41,8 +37,8 @@ const html_expressions = [
   "<html><body><div style='border: 2px solid green; width: 100%'><div style='border: 3px solid blue; width: 100%'><p>Lorem IpsumL</p></div><div style='margin-left: 36px'><p>Lorem IpsumLore</p></div><div style='border: 2px solid blue; width: 50%; margin-left: auto; margin-right: auto'><p>Lorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumL</p><p>Lorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumL</p><p>Lorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumLorem IpsumL</p></div><div style='width: 24%; margin-right: 8px; margin-left: auto'><p>Lorem Ip</p></div><div style='border: 2px solid red; margin-top: 50px; width: 100%'><div style='width: 24%; height: 24px; margin-left: auto; margin-right: auto'><p>Lorem IpsumL</p></div></div></div></body></html>",
 ];
 
-export function Home({ targetImage }: Props) {
-  const imageUrl = URL.createObjectURL(targetImage);
+export function Home({}: Props) {
+  const imageUrl = "/html_target.png";
   const [currentIndex, setCurrentIndex] = useState(0);
   const intervalTime = 1500;
   const initialDelay = 2000;
