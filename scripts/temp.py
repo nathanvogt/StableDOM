@@ -9,7 +9,22 @@ def main(env):
     env = env_to_env[env]
 
     html_dsl = """
-(Compose(Compose(Div(Stylewidth:36px)(P'lorem ipsum'))(Compose(P'lorem ipsum')(Div(Styleheight:12px)(Div(Styleborder:12pxblue)(Div(Styleheight:36px)(Div(Styleborder:12pxblue)(Div(Styleheight:4px)(Div(Styleborder:36pxred)(P'lorem ipsum')))))))))(Compose(P'lorem ipsum')(Div(Styleborder:4pxred)(P'lorem ipsum'))))
+
+
+(Div (Style (Junct border: 2px green (Junct width: 100% height: 100%)))
+
+(Compose 
+
+(Div (Style (Junct border: 2px red width: 12%)) (P '12'))
+(Div (Style (Junct border: 2px blue width: 24%)) (P '24'))
+
+)
+
+)
+
+
+
+
 """
     csg2d_dsl = """
 (+ (Circle 1 0 0) (Circle 2 2 2))
