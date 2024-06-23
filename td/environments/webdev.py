@@ -18,7 +18,7 @@ grammar_spec = r"""
     // (Div x y style element)
     div: "(" "Div" style element ")"
     //TEXT: /[a-zA-Z0-9\s]+/
-    text: "lorem ipsum" -> loremipsum
+    text: number -> loremipsum
 
     style: "(" "Style" style_element ")"
     style_junct: "(" "Junct" style_element style_element ")"
@@ -26,17 +26,23 @@ grammar_spec = r"""
     style_border: "border" ":" size unit color
     style_width: "width" ":" size unit
     style_height: "height" ":" size unit
-    style_pair: style_border | style_width | style_height
+    margin_value: size unit | "auto" -> auto
+    style_margin_top: "margin-top" ":" margin_value
+    style_margin_left: "margin-left" ":" margin_value
+    style_margin_right: "margin-right" ":" margin_value
+    style_margin_bottom: "margin-bottom" ":" margin_value
+    style_pair: style_border | style_width | style_height | style_margin_top | style_margin_left | style_margin_right | style_margin_bottom
 
-    color: "red" -> red | "blue" -> blue
-    size: "4" -> four | "12" -> twelve | "24" -> twentyfour | "36" -> thirtysix
-    unit: "px" -> px
+    color: "red" -> red | "blue" -> blue | "green" -> green
+    number: "0" -> zero | "1" -> one | "2" -> two | "3" -> three | "4" -> four | "5" -> five | "6" -> six | "7" -> seven | "8" -> eight | "9" -> nine | "A" -> ten | "B" -> eleven | "C" -> twelve | "D" -> thirteen | "E" -> fourteen | "F" -> fifteen | "12" -> twelve | "24" -> twentyfour | "36" -> thirtysix | "50" -> fifty | "100" -> hundred
+    size: number
+    unit: "px" -> px | "%" -> percent
 
     %ignore /[\t \n\f\r]+/  // Ignore whitespace
 """
 # 1512, 982
-_SCREEN_WIDTH = 1512 // 4
-_SCREEN_HEIGHT = 982 // 4
+_SCREEN_WIDTH = 1512 // 2
+_SCREEN_HEIGHT = 982 // 2
 
 
 class HTMLTransformer(Transformer):
@@ -64,6 +70,27 @@ class HTMLTransformer(Transformer):
 
     def style_element(self, children):
         return children[0]
+
+    def style_margin_top(self, children):
+        return f"margin-top: {children[0]}"
+
+    def style_margin_left(self, children):
+        return f"margin-left: {children[0]}"
+
+    def style_margin_right(self, children):
+        return f"margin-right: {children[0]}"
+
+    def style_margin_bottom(self, children):
+        return f"margin-bottom: {children[0]}"
+
+    def margin_value(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return f"{children[0]}{children[1]}"
+
+    def auto(self, _):
+        return "auto"
 
     def style(self, children):
         s = children[0]
@@ -98,11 +125,53 @@ class HTMLTransformer(Transformer):
         (body,) = children
         return f"<html>{body}</html>"
 
+    def zero(self, _):
+        return 0
+
+    def one(self, _):
+        return 1
+
+    def two(self, _):
+        return 2
+
+    def three(self, _):
+        return 3
+
     def four(self, _):
         return 4
 
+    def five(self, _):
+        return 5
+
+    def six(self, _):
+        return 6
+
+    def seven(self, _):
+        return 7
+
+    def eight(self, _):
+        return 8
+
+    def nine(self, _):
+        return 9
+
+    def ten(self, _):
+        return 10
+
+    def eleven(self, _):
+        return 11
+
     def twelve(self, _):
         return 12
+
+    def thirteen(self, _):
+        return 13
+
+    def fourteen(self, _):
+        return 14
+
+    def fifteen(self, _):
+        return 15
 
     def twentyfour(self, _):
         return 24
@@ -110,17 +179,35 @@ class HTMLTransformer(Transformer):
     def thirtysix(self, _):
         return 36
 
+    def fifty(self, _):
+        return 50
+
+    def hundred(self, _):
+        return 100
+
+    def size(self, children):
+        return children[0]
+
     def red(self, _):
         return "red"
 
     def blue(self, _):
         return "blue"
 
+    def green(self, _):
+        return "green"
+
     def px(self, _):
         return "px"
 
-    def loremipsum(self, _):
-        return "heheheloremipsumhehehehe"
+    def loremipsum(self, children):
+        num_chars = children[0]
+        phrase = "Lorem Ipsum"
+        repeated_text = (phrase * (num_chars // len(phrase) + 1))[:num_chars]
+        return repeated_text
+
+    def percent(self, _):
+        return "%"
 
 
 def resize_image(image, new_width, new_height):
@@ -160,34 +247,82 @@ class HTMLCompiler(Compiler):
         super().__init__()
         self._expression_to_html = HTMLTransformer()
 
+    # def compile(self, expression: Tree):
+    #     content = self._expression_to_html.transform(expression)
+    #     html = f"<html><body>{content}</body></html>"
+    #     img_raw = imgkit.from_string(
+    #         html,
+    #         False,
+    #         options={
+    #             "format": "png",
+    #             "quiet": "",
+    #             # "crop-w": _SCREEN_WIDTH,
+    #             # "crop-h": _SCREEN_HEIGHT,
+    #         },
+    #     )
+    #     stream = BytesIO(img_raw)
+    #     image = PILImage.open(stream)
+    #     if image.mode != "RGB":
+    #         image = image.convert("RGB")
+    #     desired_width = _SCREEN_WIDTH
+    #     desired_height = _SCREEN_HEIGHT
+    #     image = image.resize((desired_width, desired_height), PILImage.LANCZOS)
+    #     image_array = np.array(image)
+    #     image.close()
+    #     stream.close()
+    #     # print(image_array.shape)
+    #     # assert image_array.shape == (_SCREEN_HEIGHT, _SCREEN_WIDTH, 3)
+    #     # print("compile array shape")
+    #     return image_array / 255.0
+    #     # return np.load("/Users/nathanvogt/tree-diffusion/html.npy")
+
     def compile(self, expression: Tree):
         content = self._expression_to_html.transform(expression)
         html = f"<html><body>{content}</body></html>"
+        # print(html)
         img_raw = imgkit.from_string(
             html,
             False,
             options={
                 "format": "png",
+                "height": _SCREEN_HEIGHT,
+                "width": _SCREEN_WIDTH,
                 "quiet": "",
-                # "crop-w": _SCREEN_WIDTH,
-                # "crop-h": _SCREEN_HEIGHT,
             },
         )
         stream = BytesIO(img_raw)
         image = PILImage.open(stream)
         if image.mode != "RGB":
             image = image.convert("RGB")
+
         desired_width = _SCREEN_WIDTH
         desired_height = _SCREEN_HEIGHT
-        image = image.resize((desired_width, desired_height), PILImage.LANCZOS)
-        image_array = np.array(image)
+        img_ratio = image.width / image.height
+        target_ratio = desired_width / desired_height
+
+        if target_ratio > img_ratio:
+            new_width = int(desired_height * img_ratio)
+            image = image.resize((new_width, desired_height), PILImage.LANCZOS)
+            new_image = PILImage.new(
+                "RGB", (desired_width, desired_height), (255, 255, 255)
+            )
+            padding = (desired_width - new_width) // 2
+            new_image.paste(image, (padding, 0))
+        elif target_ratio < img_ratio:
+            new_height = int(desired_width / img_ratio)
+            image = image.resize((desired_width, new_height), PILImage.LANCZOS)
+            new_image = PILImage.new(
+                "RGB", (desired_width, desired_height), (255, 255, 255)
+            )
+            padding = (desired_height - new_height) // 2
+            new_image.paste(image, (0, padding))
+        else:
+            new_image = image.resize((desired_width, desired_height), PILImage.LANCZOS)
+
+        image_array = np.array(new_image)
         image.close()
         stream.close()
-        # print(image_array.shape)
-        # assert image_array.shape == (_SCREEN_HEIGHT, _SCREEN_WIDTH, 3)
-        # print("compile array shape")
         return image_array / 255.0
-        # return np.load("/Users/nathanvogt/tree-diffusion/html.npy")
 
 
 class HTML(Environment):
@@ -196,7 +331,7 @@ class HTML(Environment):
         self._grammar = Grammar(
             grammar_spec,
             start="element",
-            primitives=["paragraph", "style_element"],
+            primitives=["paragraph", "div", "style_element"],
         )
         self._compiler = HTMLCompiler()
         self._goal_checker = GaussianImageGoalChecker(self.compiled_shape)

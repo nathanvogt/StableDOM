@@ -9,10 +9,25 @@ def main(env):
     env = env_to_env[env]
 
     html_dsl = """
-(Compose(Compose(Div(Stylewidth:36px)(P'lorem ipsum'))(Compose(P'lorem ipsum')(Div(Styleheight:12px)(Div(Styleborder:12pxblue)(Div(Styleheight:36px)(Div(Styleborder:12pxblue)(Div(Styleheight:4px)(Div(Styleborder:36pxred)(P'lorem ipsum')))))))))(Compose(P'lorem ipsum')(Div(Styleborder:4pxred)(P'lorem ipsum'))))
+
+
+(Div (Style (Junct border: 2px green (Junct width: 100% height: 50%)))
+
+(Compose 
+
+(Div (Style (Junct border: 2px red width: 50%)) (P '50'))
+(Div (Style (Junct border: 2px blue (Junct margin-left: auto (Junct margin-right: auto width: 50%)))) (P '24'))
+
+)
+
+)
+
+
+
+
 """
     csg2d_dsl = """
-(+ (Circle 1 0 0) (Circle 2 2 2))
+(+ (- (Circle 8 8 8) (Circle 5 8 8)) (Quad 8 8 4 4 H))
 """
 
     csg2da_dsl = """
@@ -26,8 +41,7 @@ def main(env):
 
     img = env.compile(dsl)
     print(img.shape)
-
-    plt.imshow(img)
+    plt.imshow(img, cmap="gray")
     plt.axis("off")
     plt.show()
 
