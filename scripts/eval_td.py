@@ -205,7 +205,7 @@ def create_generator(initial_img):
         nonlocal values
         nonlocal current_images
 
-        yield current_images
+        yield (current_images, current_expressions)
         for step_i in range(FLAGS.max_steps):
             logging.info(f"Step {step_i} / {FLAGS.max_steps} ... {max(values)}")
             mutations = sample_model_kv(
@@ -228,7 +228,7 @@ def create_generator(initial_img):
                 # raise ValueError("Error in current expressions")
                 continue
 
-            yield current_images
+            yield (current_images, current_expressions)
 
             for image_i in range(len(current_images)):
                 if env.goal_reached(current_images[image_i], target_images[problem_i]):
@@ -261,34 +261,34 @@ def create_generator(initial_img):
 
 
 def main(argv):
-    # import os
-    # from td.environments.webdev import HTML, HTMLCompiler
+    import os
+    from td.environments.webdev import HTML, HTMLCompiler
 
-    # html = HTML()
-    # compiler = HTMLCompiler()
+    html = HTML()
+    compiler = HTMLCompiler()
     # print("main")
     image_generator = create_generator(argv)
-    visualize(image_generator)
+    # visualize(image_generator)
     # tries path
-    # tries_path = "/Users/nathanvogt/tree-diffusion/scripts/tries"
-    # starting_idx = (
-    #     max([int(x) for x in os.listdir(tries_path)]) if os.listdir(tries_path) else 0
-    # )
-    # for current_image, current_expression in image_generator():
-    #     html_expression = compiler.semi_compile(
-    #         html.grammar.parse(current_expression[0])
-    #     )
-    #     starting_idx += 1
-    #     current_dir = os.path.join(tries_path, str(starting_idx))
-    #     os.mkdir(current_dir)
-    #     import matplotlib.pyplot as plt
+    tries_path = "/Users/nathanvogt/tree-diffusion/scripts/tries"
+    starting_idx = (
+        max([int(x) for x in os.listdir(tries_path)]) if os.listdir(tries_path) else 0
+    )
+    for current_image, current_expression in image_generator():
+        html_expression = compiler.semi_compile(
+            html.grammar.parse(current_expression[0])
+        )
+        starting_idx += 1
+        current_dir = os.path.join(tries_path, str(starting_idx))
+        os.mkdir(current_dir)
+        import matplotlib.pyplot as plt
 
-    #     plt.imsave(os.path.join(current_dir, "image.png"), current_image[0])
-    #     np.save(os.path.join(current_dir, "image.npy"), current_image)
-    #     with open(os.path.join(current_dir, "expression.txt"), "w") as f:
-    #         f.write(current_expression[0])
-    #     with open(os.path.join(current_dir, "html_expression.txt"), "w") as f:
-    #         f.write(str(html_expression))
+        plt.imsave(os.path.join(current_dir, "image.png"), current_image[0])
+        np.save(os.path.join(current_dir, "image.npy"), current_image)
+        with open(os.path.join(current_dir, "expression.txt"), "w") as f:
+            f.write(current_expression[0])
+        with open(os.path.join(current_dir, "html_expression.txt"), "w") as f:
+            f.write(str(html_expression))
 
 
 if __name__ == "__main__":
