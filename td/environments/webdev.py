@@ -253,7 +253,7 @@ class HTMLCompiler(Compiler):
     def compile(self, expression: Tree):
         content = self._expression_to_html.transform(expression)
         html = f"<html><body>{content}</body></html>"
-        print(html)
+        # print(html)
         img_raw = imgkit.from_string(
             html,
             False,
