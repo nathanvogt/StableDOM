@@ -88,13 +88,12 @@ export function Home({}: Props) {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          // padding: "10px",
         }}
       >
         <div
           style={{ marginBottom: "0px", textAlign: "center", width: "100%" }}
         >
-          <div style={{ fontSize: "12px", marginBottom: "0px" }}>
+          <div style={{ fontSize: "16px", marginBottom: "0px" }}>
             Target Image
           </div>
           <img
