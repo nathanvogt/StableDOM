@@ -158,7 +158,7 @@ def create_generator(initial_img):
 
     hard = ["(+ (- (Circle 8 6 8) (Circle 5 8 8)) (- (Circle 2 9 A) (Quad 9 A 2 2 H)))"]
     easy = ["(+ (- (Circle 8 6 8) (Circle 5 8 8)) (Circle 2 9 A))"]
-    target_expressions = easy
+    target_expressions = hard
 
     target_images = np.array(
         [
