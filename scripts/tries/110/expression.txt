@@ -1,1 +1,0 @@
-(Div(Stylewidth:8px)(Compose(Div(Stylewidth:100%)(P'24'))(Compose(P'9')(Compose(Compose(Div(Stylemargin-right:2%)(Compose(P'100')(Compose(Compose(P'100')(Compose(P'100')(P'100')))(Compose(P'50')(P'100')))))(Div(Style(Junctwidth:7%(Junctmargin-right:50pxmargin-left:Fpx)))(P'8')))(Compose(P'100')(P'100'))))))
