@@ -2,43 +2,46 @@ from lark import Transformer, Tree, v_args
 from td.grammar import Compiler, Grammar
 from td.environments.environment import Environment
 from td.environments.goal_checker import GaussianImageGoalChecker
-import imgkit
-from io import BytesIO
 from PIL import Image as PILImage
 import numpy as np
 
 from PIL import Image
 import numpy as np
 
+import numpy as np
+from PIL import Image
+from io import BytesIO
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+import imgkit
+
 grammar_spec = r"""
+s: element | style_element
+element: div | paragraph | compose
+compose: "(" "Compose" " " element " " element ")"
+div: "(" "Div" " " style_element " " element ")"
+paragraph: "(" "P" " " "'" text "'" ")"
+text: number -> loremipsum
 
-    compose: "(" "Compose" element element ")"
-    element: paragraph | div | compose
-    paragraph: "(" "P" "'" text "'" ")"
-    // (Div style element)
-    div: "(" "Div" style element ")"
-    //TEXT: /[a-zA-Z0-9\s]+/
-    text: number -> loremipsum
+style_element: style_pair | style_junct
+style_junct: "(" "Junct" " " style_element " " style_element ")"
+style_pair: style_border | style_width | style_height | style_margin_top | style_margin_left | style_margin_right | style_margin_bottom
+style_border: "border" ":" size unit " " color
+style_width: "width" ":" size unit
+style_height: "height" ":" size unit
+margin_value: size unit | "auto" -> auto
+style_margin_top: "margin-top" ":" margin_value
+style_margin_left: "margin-left" ":" margin_value
+style_margin_right: "margin-right" ":" margin_value
+style_margin_bottom: "margin-bottom" ":" margin_value
 
-    style: "(" "Style" style_element ")"
-    style_junct: "(" "Junct" style_element style_element ")"
-    style_element: style_pair | style_junct
-    style_border: "border" ":" size unit color
-    style_width: "width" ":" size unit
-    style_height: "height" ":" size unit
-    margin_value: size unit | "auto" -> auto
-    style_margin_top: "margin-top" ":" margin_value
-    style_margin_left: "margin-left" ":" margin_value
-    style_margin_right: "margin-right" ":" margin_value
-    style_margin_bottom: "margin-bottom" ":" margin_value
-    style_pair: style_border | style_width | style_height | style_margin_top | style_margin_left | style_margin_right | style_margin_bottom
+color: "red" -> red | "blue" -> blue | "green" -> green
+number: "0" -> zero | "1" -> one | "2" -> two | "3" -> three | "4" -> four | "5" -> five | "6" -> six | "7" -> seven | "8" -> eight | "9" -> nine | "10" -> ten | "11" -> eleven | "12" -> twelve | "13" -> thirteen | "14" -> fourteen | "15" -> fifteen | "24" -> twentyfour | "36" -> thirtysix | "50" -> fifty | "100" -> hundred
+size: number
+unit: "px" -> px | "%" -> percent
 
-    color: "red" -> red | "blue" -> blue | "green" -> green
-    number: "0" -> zero | "1" -> one | "2" -> two | "3" -> three | "4" -> four | "5" -> five | "6" -> six | "7" -> seven | "8" -> eight | "9" -> nine | "A" -> ten | "B" -> eleven | "C" -> twelve | "D" -> thirteen | "E" -> fourteen | "F" -> fifteen | "12" -> twelve | "24" -> twentyfour | "36" -> thirtysix | "50" -> fifty | "100" -> hundred
-    size: number
-    unit: "px" -> px | "%" -> percent
-
-    %ignore /[\t \n\f\r]+/  // Ignore whitespace
+%ignore /[\t\n\f\r]+/ 
 """
 
 _SCREEN_WIDTH = 1512 // 2
@@ -46,6 +49,10 @@ _SCREEN_HEIGHT = 982 // 2
 
 
 class HTMLTransformer(Transformer):
+    def s(self, children):
+        print(f"s: {children}")
+        return children[0]
+
     @v_args(inline=True)
     def text(self, text):
         return text.strip()
@@ -247,43 +254,17 @@ class HTMLCompiler(Compiler):
         super().__init__()
         self._expression_to_html = HTMLTransformer()
 
-    # def compile(self, expression: Tree):
-    #     content = self._expression_to_html.transform(expression)
-    #     html = f"<html><body>{content}</body></html>"
-    #     img_raw = imgkit.from_string(
-    #         html,
-    #         False,
-    #         options={
-    #             "format": "png",
-    #             "quiet": "",
-    #             # "crop-w": _SCREEN_WIDTH,
-    #             # "crop-h": _SCREEN_HEIGHT,
-    #         },
-    #     )
-    #     stream = BytesIO(img_raw)
-    #     image = PILImage.open(stream)
-    #     if image.mode != "RGB":
-    #         image = image.convert("RGB")
-    #     desired_width = _SCREEN_WIDTH
-    #     desired_height = _SCREEN_HEIGHT
-    #     image = image.resize((desired_width, desired_height), PILImage.LANCZOS)
-    #     image_array = np.array(image)
-    #     image.close()
-    #     stream.close()
-    #     # print(image_array.shape)
-    #     # assert image_array.shape == (_SCREEN_HEIGHT, _SCREEN_WIDTH, 3)
-    #     # print("compile array shape")
-    #     return image_array / 255.0
-    #     # return np.load("/Users/nathanvogt/tree-diffusion/html.npy")
-    def semi_compile(self, expression: Tree):
-        content = self._expression_to_html.transform(expression)
-        html = f"<html><body>{content}</body></html>"
-        return html
-
     def compile(self, expression: Tree):
+        try:
+            return self.compile_(expression)
+        except Exception as e:
+            print(f"Error compiling expression: {expression}")
+            raise e
+
+    def compile_(self, expression: Tree):
+        return np.random.rand(491, 756, 3)
         content = self._expression_to_html.transform(expression)
         html = f"<html><body>{content}</body></html>"
-        # print(html)
         img_raw = imgkit.from_string(
             html,
             False,
@@ -334,8 +315,8 @@ class HTML(Environment):
         super().__init__()
         self._grammar = Grammar(
             grammar_spec,
-            start="element",
-            primitives=["element", "style_junct"],
+            start="s",
+            primitives=["paragraph", "style_pair"],
         )
         self._compiler = HTMLCompiler()
         self._goal_checker = GaussianImageGoalChecker(self.compiled_shape)

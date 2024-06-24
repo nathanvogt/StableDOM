@@ -62,9 +62,10 @@ class CountPrimitives(Visitor):
     def __default__(self, tree):
         self_count = tree.data in self._primitives
         try:
+            idk = tree
             count = sum(child.primitive_count for child in tree.children) + self_count
         except:
-            print(f"\n\nError in tree. Children: {tree.children}\n\n")
+            print(f"\n\nError in tree. Children: {idk.children}\n\n")
         tree.primitive_count = count
 
 
@@ -98,9 +99,6 @@ def random_mutation(
 
     while True:
         if not candidates:
-            # print(
-            #     f"\n\nMutation is None: \n{expression=}\n{candidates=}\n{candidate_primitive_counts=}\n\n"
-            # )
             return None
 
         candidate = random.choice(candidates)
@@ -205,6 +203,7 @@ def one_step_path_mutations(
 
     def prepare_tree(expression):
         tree = grammar.parse(expression)
+
         primitive_counter.visit(tree)
         parent_adder.visit(tree)
         return tree
@@ -291,8 +290,16 @@ def one_step_path_mutations(
 
         return []
 
-    treeA = prepare_tree(exprA)
-    treeB = prepare_tree(exprB)
+    try:
+        treeA = prepare_tree(exprA)
+    except Exception as e:
+        print(f"\n\nError in prepare_tree: {exprA=}, {exprB=}\n\n")
+        raise e
+    try:
+        treeB = prepare_tree(exprB)
+    except Exception as e:
+        print(f"\n\nError in prepare_tree: {treeA=} {exprA=}, {exprB=}\n\n")
+        raise e
 
     return treediff(treeA, treeB, exprA, exprB)
 
@@ -339,14 +346,21 @@ def forward_process(
     expression: str, num_steps: int, grammar: Grammar, sampler: ConstrainedRandomSampler
 ) -> Tuple[str, Mutation]:
     current_expression = expression
-
+    reverse_mutation = None
     for i in range(num_steps):
         mutation = random_mutation(current_expression, grammar, sampler)
-        # Premature optimization is the root of all evil.
-        if i == num_steps - 1:
+        if mutation is None:
+            break
+        try:
+            # # Premature optimization is the root of all evil.
+            # if i == num_steps - 1:
+            #     reverse_mutation = mutation.reverse(current_expression)
             reverse_mutation = mutation.reverse(current_expression)
-
-        current_expression = mutation.apply(current_expression)
+            current_expression = mutation.apply(current_expression)
+        except:
+            print(
+                f"\n\nError in mutation: {num_steps=} current step:{i} {mutation=} {expression=}\n\n"
+            )
 
     return current_expression, reverse_mutation
 
@@ -363,6 +377,7 @@ def forward_process_with_path(
     force_mode: str = None,
     return_full_path: bool = False,
 ) -> Tuple[str, Mutation]:
+    expression = "(Compose (P '11') (Compose (Div height:0px (Div (Junct margin-bottom:10% margin-bottom:0%) (P '12'))) (Div width:100px (P '4'))))"
     mode = (
         force_mode
         if force_mode is not None
@@ -376,10 +391,13 @@ def forward_process_with_path(
         mutated_expression, _ = forward_process(expression, num_steps, grammar, sampler)
     else:
         raise ValueError("Invalid mode")
-
+    mutated_expression = "(Div height:3px (P '14'))"
+    print(f"Original expression: {expression}")
+    print(f"Mutated expression: {mutated_expression}\n")
     path = find_path(
         mutated_expression, expression, grammar, sampler, small_primitive_count
     )
+    print(f"Path: {path}\n")
 
     if path is None or len(path) == 0:
         return forward_process_with_path(

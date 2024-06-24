@@ -104,24 +104,7 @@ class TreeDiffusionDataset(IterableDataset):
             target_expressions = []
 
             while len(target_expressions) < self._batch_size:
-                # expression = self._env.sample_non_empty(sample_fn)
-                html_dsl = """
-(Div (Style (Junct border: 2px green width: 100%))
-(Compose
-(Div (Style (Junct border: 3px blue width: 100%)) (P '12'))
-(Compose 
-(Div (Style margin-left: 36px) (P 'F'))
-(Compose
-(Compose
-(Div (Style (Junct border: 2px blue (Junct width: 50% (Junct margin-left: auto margin-right: auto))))  (Compose (P '100') (Compose (P '100') (P '100'))))
-(Div (Style (Junct width: 24% (Junct margin-right: 8px margin-left: auto))) (P '8'))
-)
-(Div (Style (Junct border: 2px red (Junct margin-top: 50px width: 100%)))(Div (Style (Junct width: 24% (Junct height: 24px (Junct margin-left: auto margin-right: auto)))) (P '12'))))))
-)
-"""
-                # strip newlines and whitespace from the DSL
-                html_dsl = "".join(html_dsl.split())
-                expression = html_dsl
+                expression = self._env.sample_non_empty(sample_fn)
                 target_expressions.append(expression)
 
             steps = [
@@ -176,11 +159,10 @@ class TreeDiffusionDataset(IterableDataset):
                 for expression, _ in training_examples
             ]
         except Exception as e:
-            # logging.warning(f"Failed to compile: {e}")
-            # logging.exception(e)
+            print("Restarting")
+            logging.warning(f"Failed to compile: {e}")
+            logging.exception(e)
             return self._produce_batch()
-        # print("training examples")
-        # print(training_examples)
         tokenized = []
         context_tokens_mask = []
         for mutated_expression, reverse_mutation in training_examples:
@@ -221,6 +203,7 @@ class TreeDiffusionDataset(IterableDataset):
             )
 
         if any(t is None for t in tokenized):
+            print("Retrying")
             return self._produce_batch()
 
         return (
@@ -285,12 +268,6 @@ def generate_uuid():
 
 def batch_to_torch(batch, device="cpu"):
     tokens, mask, target_images, mutated_images, steps = batch
-    # load each of these from files
-    # tokens = torch.load("/content/tokens.pt")
-    # mask = torch.load("/content/mask.pt")
-    # target_images = torch.load("/content/target_images.pt")
-    # mutated_images = torch.load("/content/mutated_images.pt")
-    # steps = torch.load("/content/steps.pt")
     res = (
         tokens.to(device).long(),
         mask.to(device).float(),
@@ -298,14 +275,6 @@ def batch_to_torch(batch, device="cpu"):
         mutated_images.to(device).float(),
         steps.to(device).long(),
     )
-    # save each of these to files
-    # torch.save(res[0], "tokens.pt")
-    # torch.save(res[1], "mask.pt")
-    # torch.save(res[2], "target_images.pt")
-    # torch.save(res[3], "mutated_images.pt")
-    # torch.save(res[4], "steps.pt")
-    # raise Exception("Saved to files")
-    # delete the original batch to save memory
     del tokens
     del mask
     del target_images
