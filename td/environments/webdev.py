@@ -50,7 +50,6 @@ _SCREEN_HEIGHT = 982 // 2
 
 class HTMLTransformer(Transformer):
     def s(self, children):
-        print(f"s: {children}")
         return children[0]
 
     @v_args(inline=True)
@@ -107,16 +106,8 @@ class HTMLTransformer(Transformer):
         return "".join(children)
 
     def div(self, children):
-        if children and len(children):
-            style = (
-                children[0]
-                if len(children[0]) >= len("style")
-                and children[0][: len("style")] == "style"
-                else ""
-            )
-            elements = children if style == "" else children[1:]
-            return f"<div {style}>" + "".join(elements) + "</div>"
-        return "<div></div>"
+        (style, elements) = children
+        return f"<div {style}>" + "".join(elements) + "</div>"
 
     def paragraph(self, children):
         text = children[0]
@@ -124,13 +115,6 @@ class HTMLTransformer(Transformer):
 
     def element(self, children):
         return children[0]
-
-    def body(self, children):
-        return "<body style='background-color: white'>" + "".join(children) + "</body>"
-
-    def html(self, children):
-        (body,) = children
-        return f"<html>{body}</html>"
 
     def zero(self, _):
         return 0
@@ -255,14 +239,6 @@ class HTMLCompiler(Compiler):
         self._expression_to_html = HTMLTransformer()
 
     def compile(self, expression: Tree):
-        try:
-            return self.compile_(expression)
-        except Exception as e:
-            print(f"Error compiling expression: {expression}")
-            raise e
-
-    def compile_(self, expression: Tree):
-        # return np.random.rand(491, 756, 3)
         content = self._expression_to_html.transform(expression)
         html = f"<html><body>{content}</body></html>"
         img_raw = imgkit.from_string(

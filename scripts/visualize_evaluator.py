@@ -31,46 +31,6 @@ def print_some_samples():
         plt.show()
 
 
-def print_some_batches(num_batches=10):
-    device = "cpu"
-    env = HTML()
-    dataset = TreeDiffusionDataset(
-        batch_size=1,
-        env_name=env.name(),
-        min_steps=1,
-        max_steps=5,
-        max_sequence_length=512,
-        min_primitives=2,
-        max_primitives=8,
-        forward_mode="path",
-        target_observation=False,
-        current_observation=False,
-        random_mix=0.0,
-    )
-    count = 0
-    for batch in dataset:
-        if count == num_batches:
-            break
-        count += 1
-        pass
-    # tokenized, context_tokens_mask, target_images, mutated_images, steps = batch
-    # first_target_img: np.ndarray = target_images[0]
-    # first_mutated_img = mutated_images[0]
-    # first_target_img = np.transpose(first_target_img, (1, 2, 0))
-    # first_mutated_img = np.transpose(first_mutated_img, (1, 2, 0))
-    return
-    plt.figure(figsize=(10, 10))
-    plt.subplot(1, 2, 1)
-    plt.imshow(first_target_img)
-    plt.title("Target Image")
-    plt.axis("off")
-    plt.subplot(1, 2, 2)
-    plt.imshow(first_mutated_img)
-    plt.title("Mutated Image")
-    plt.axis("off")
-    plt.show()
-
-
 def time_batch_loading(env_class, num_batches=10):
     start_time = time.time()
 
@@ -123,8 +83,6 @@ def compare_env_loading_times(num_batches=10, num_runs=5):
 
 
 def main():
-    # print_some_batches(num_batches=10)
-    # compare_env_loading_times(num_batches=10, num_runs=4)
     print_some_samples()
 
 
