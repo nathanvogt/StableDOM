@@ -107,7 +107,7 @@ class HTMLTransformer(Transformer):
 
     def div(self, children):
         (style, elements) = children
-        return f"<div {style}>" + "".join(elements) + "</div>"
+        return f"<div style='{style}'>" + "".join(elements) + "</div>"
 
     def paragraph(self, children):
         text = children[0]
@@ -241,6 +241,7 @@ class HTMLCompiler(Compiler):
     def compile(self, expression: Tree):
         content = self._expression_to_html.transform(expression)
         html = f"<html><body>{content}</body></html>"
+        print(html)
         img_raw = imgkit.from_string(
             html,
             False,

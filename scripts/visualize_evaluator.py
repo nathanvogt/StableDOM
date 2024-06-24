@@ -19,7 +19,7 @@ def print_some_samples():
         axes = axes.flatten()
     num_samples = 6
     for i in range(num_samples):
-        expression = sampler.sample(env.grammar.sample_start_symbol)
+        expression = sampler.sample(env.grammar.sample_start_symbol, max_primitives=25)
         print(f"Expression {i+1}: {expression}")
         if display:
             img = env.compile(str(expression))
