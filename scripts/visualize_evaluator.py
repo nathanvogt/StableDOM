@@ -1,12 +1,16 @@
 from train import TreeDiffusionDataset
 from td.environments.webdev import HTML
 from td.environments.csg2da import CSG2DA
+import math
 import matplotlib.pyplot as plt
 from td.samplers import ConstrainedRandomSampler
 from td.learning.tokenizer import Tokenizer
 from td.learning.evaluation import OneStepEvaluator
 import numpy as np
 import time
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 
 
 def print_some_samples():
@@ -19,7 +23,9 @@ def print_some_samples():
         axes = axes.flatten()
     num_samples = 6
     for i in range(num_samples):
-        expression = sampler.sample(env.grammar.sample_start_symbol, max_primitives=25)
+        expression = sampler.sample(
+            env.grammar.sample_start_symbol,
+        )
         print(f"Expression {i+1}: {expression}")
         if display:
             img = env.compile(str(expression))
@@ -29,6 +35,54 @@ def print_some_samples():
     if display:
         plt.tight_layout()
         plt.show()
+
+
+def print_some_batches(batch_size, env):
+    device = "cpu"
+    dataset = TreeDiffusionDataset(
+        batch_size=batch_size,
+        env_name=env.name(),
+        min_steps=1,
+        max_steps=5,
+        max_sequence_length=512,
+        min_primitives=2,
+        max_primitives=8,
+        forward_mode="path",
+        target_observation=False,
+        current_observation=False,
+        random_mix=0.25,
+    )
+    batch = next(iter(dataset))
+    tokenized, context_tokens_mask, target_images, mutated_images, steps = batch
+
+    # Create a figure with scrollable subplot
+    fig = plt.figure(figsize=(10, 5 * batch_size))
+    gs = GridSpec(batch_size, 2, figure=fig)
+
+    for i in range(batch_size):
+        target_img = np.transpose(target_images[i], (1, 2, 0))
+        mutated_img = np.transpose(mutated_images[i], (1, 2, 0))
+
+        # Plot target image
+        ax1 = fig.add_subplot(gs[i, 0])
+        ax1.imshow(target_img)
+        ax1.set_title(f"Target {i+1}")
+        ax1.axis("off")
+
+        # Plot mutated image
+        ax2 = fig.add_subplot(gs[i, 1])
+        ax2.imshow(mutated_img)
+        ax2.set_title(f"Mutated {i+1}")
+        ax2.axis("off")
+
+    plt.tight_layout()
+
+    # Make the figure scrollable
+    plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+    fig.set_size_inches(10, 5 * batch_size)
+
+    # Show the plot
+    plt.show()
 
 
 def time_batch_loading(env_class, num_batches=10):
@@ -83,7 +137,8 @@ def compare_env_loading_times(num_batches=10, num_runs=5):
 
 
 def main():
-    print_some_samples()
+    # print_some_samples()
+    print_some_batches(batch_size=6, env=HTML())
 
 
 if __name__ == "__main__":

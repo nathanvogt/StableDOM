@@ -158,6 +158,8 @@ class TreeDiffusionDataset(IterableDataset):
                 )
                 for expression, _ in training_examples
             ]
+            print(f"target expressions: {target_expressions}\n")
+            print(f"training examples: {training_examples}\n")
         except Exception as e:
             print("Restarting")
             logging.warning(f"Failed to compile: {e}")

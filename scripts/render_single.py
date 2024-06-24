@@ -11,7 +11,6 @@ import numpy as np
 def main(*args):
     env = environments[args[0]]()
     expression = args[1]
-    print(expression)
     img = env.compile(str(expression))
     plt.imshow(img)
     plt.axis("off")

@@ -26,8 +26,9 @@ text: number -> loremipsum
 
 style_element: style_pair | style_junct
 style_junct: "(" "Junct" " " style_element " " style_element ")"
-style_pair: style_border | style_width | style_height | style_margin_top | style_margin_left | style_margin_right | style_margin_bottom
+style_pair: style_border | style_width | style_height | style_margin_top | style_margin_left | style_margin_right | style_margin_bottom | style_background_color
 style_border: "border" ":" size unit " " color
+style_background_color: "background-color" ":" color
 style_width: "width" ":" size unit
 style_height: "height" ":" size unit
 margin_value: size unit | "auto" -> auto
@@ -59,6 +60,9 @@ class HTMLTransformer(Transformer):
     def style_border(self, children):
         (size, unit, color) = children
         return f"border: {size}{unit} solid {color}"
+
+    def style_background_color(self, children):
+        return f"background-color: {children[0]}"
 
     def style_width(self, children):
         (width, unit) = children
@@ -180,13 +184,13 @@ class HTMLTransformer(Transformer):
         return children[0]
 
     def red(self, _):
-        return "red"
+        return "rgba(255, 0, 0, 0.5)"
 
     def blue(self, _):
-        return "blue"
+        return "rgba(0, 0, 255, 0.5)"
 
     def green(self, _):
-        return "green"
+        return "rgba(0, 255, 0, 0.5)"
 
     def px(self, _):
         return "px"
@@ -241,7 +245,6 @@ class HTMLCompiler(Compiler):
     def compile(self, expression: Tree):
         content = self._expression_to_html.transform(expression)
         html = f"<html><body>{content}</body></html>"
-        print(html)
         img_raw = imgkit.from_string(
             html,
             False,
