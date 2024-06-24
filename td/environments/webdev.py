@@ -40,7 +40,7 @@ grammar_spec = r"""
 
     %ignore /[\t \n\f\r]+/  // Ignore whitespace
 """
-# 1512, 982
+
 _SCREEN_WIDTH = 1512 // 2
 _SCREEN_HEIGHT = 982 // 2
 
