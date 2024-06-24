@@ -262,7 +262,7 @@ class HTMLCompiler(Compiler):
             raise e
 
     def compile_(self, expression: Tree):
-        return np.random.rand(491, 756, 3)
+        # return np.random.rand(491, 756, 3)
         content = self._expression_to_html.transform(expression)
         html = f"<html><body>{content}</body></html>"
         img_raw = imgkit.from_string(
@@ -316,6 +316,7 @@ class HTML(Environment):
         self._grammar = Grammar(
             grammar_spec,
             start="s",
+            sample_start="element",
             primitives=["paragraph", "style_pair"],
         )
         self._compiler = HTMLCompiler()

@@ -108,7 +108,7 @@ def random_mutation(
             start = 0
             end = len(expression)
             sub_expression = expression[start:end]
-            start_symbol = grammar.start_symbol
+            start_symbol = grammar.sample_start_symbol
         else:
             try:
                 parent = candidate.parent
@@ -244,7 +244,7 @@ def one_step_path_mutations(
                 ]
             elif not truncate_nonzero:
                 if not hasattr(treeA, "parent"):
-                    start_symbol = grammar.start_symbol
+                    start_symbol = grammar.sample_start_symbol
                 else:
                     parent = treeA.parent
                     self_child_index = parent.children.index(treeA)
@@ -350,17 +350,12 @@ def forward_process(
     for i in range(num_steps):
         mutation = random_mutation(current_expression, grammar, sampler)
         if mutation is None:
-            break
-        try:
-            # # Premature optimization is the root of all evil.
-            # if i == num_steps - 1:
-            #     reverse_mutation = mutation.reverse(current_expression)
+            raise ValueError("No mutation found")
+
+        # Premature optimization is the root of all evil.
+        if i == num_steps - 1:
             reverse_mutation = mutation.reverse(current_expression)
-            current_expression = mutation.apply(current_expression)
-        except:
-            print(
-                f"\n\nError in mutation: {num_steps=} current step:{i} {mutation=} {expression=}\n\n"
-            )
+        current_expression = mutation.apply(current_expression)
 
     return current_expression, reverse_mutation
 
@@ -385,19 +380,16 @@ def forward_process_with_path(
     )
     if mode == "random":
         mutated_expression = sampler.sample(
-            grammar.start_symbol, min_primitives, max_primitives
+            grammar.sample_start_symbol, min_primitives, max_primitives
         )
     elif mode == "mutated":
         mutated_expression, _ = forward_process(expression, num_steps, grammar, sampler)
     else:
         raise ValueError("Invalid mode")
     mutated_expression = "(Div height:3px (P '14'))"
-    print(f"Original expression: {expression}")
-    print(f"Mutated expression: {mutated_expression}\n")
     path = find_path(
         mutated_expression, expression, grammar, sampler, small_primitive_count
     )
-    print(f"Path: {path}\n")
 
     if path is None or len(path) == 0:
         return forward_process_with_path(

@@ -36,7 +36,7 @@ def rejection_sample_complex(
     attempts = 0
     while True:
         expression = sampler.sample(
-            env.grammar.start_symbol, min_primitives, max_primitives
+            env.grammar.sample_start_symbol, min_primitives, max_primitives
         )
         image = (
             env.compile(expression)

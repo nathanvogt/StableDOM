@@ -10,24 +10,25 @@ import time
 
 
 def print_some_samples():
+    display = True
     device = "cpu"
-    program = "(Compose (Compose (Div (P '1')) (P '1')) (Compose (Compose (P '1') (P '0')) (P '1')))"
     env = HTML()
     sampler = ConstrainedRandomSampler(env.grammar)
-    _, axes = plt.subplots(3, 3, figsize=(15, 15))
-    axes = axes.flatten()
-    start_symbol = env.grammar.names_to_symbols["element"]
-    for i in range(6):
-        expression = sampler.sample(start_symbol)
-        print(f"Expression {i+1}: {expression}\n")
-
-    #     img = env.compile(str(expression))
-    #     axes[i].imshow(img)
-    #     axes[i].axis("off")
-    #     axes[i].set_title(f"Expr {i+1}", fontsize=10)
-
-    # plt.tight_layout()
-    # plt.show()
+    if display:
+        _, axes = plt.subplots(3, 3, figsize=(15, 15))
+        axes = axes.flatten()
+    num_samples = 6
+    for i in range(num_samples):
+        expression = sampler.sample(env.grammar.sample_start_symbol)
+        print(f"Expression {i+1}: {expression}")
+        if display:
+            img = env.compile(str(expression))
+            axes[i].imshow(img)
+            axes[i].axis("off")
+            axes[i].set_title(f"Expr {i+1}", fontsize=10)
+    if display:
+        plt.tight_layout()
+        plt.show()
 
 
 def print_some_batches(num_batches=10):

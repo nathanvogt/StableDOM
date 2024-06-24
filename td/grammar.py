@@ -20,11 +20,13 @@ class Grammar(object):
         self,
         grammar_spec: str,
         start: str = None,
+        sample_start: str = None,
         sampling_weights: Dict[str, List[float]] = None,
         primitives: List[str] = None,
     ):
         self._grammar_spec = grammar_spec
         self._start_name = start
+        self._sample_start_name = sample_start or start
         self._sampling_weights = sampling_weights or {}
         self._primitives = set(primitives) if primitives else None
 
@@ -143,6 +145,7 @@ class Grammar(object):
             ]
 
         self._start_symbol = self._names_to_symbols[self._start_name]
+        self._sample_start_symbol = self._names_to_symbols[self._sample_start_name]
 
     @property
     def vocabulary(self):
@@ -170,6 +173,10 @@ class Grammar(object):
     @property
     def start_symbol(self):
         return self._start_symbol
+
+    @property
+    def sample_start_symbol(self):
+        return self._sample_start_symbol
 
     @property
     def primitives(self):

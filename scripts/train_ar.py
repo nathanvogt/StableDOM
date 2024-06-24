@@ -65,7 +65,7 @@ class ARDataset(IterableDataset):
     def _produce_batch(self):
         def sample_fn():
             return self._sampler.sample(
-                self._env.grammar.start_symbol,
+                self._env.grammar.sample_start_symbol,
                 min_primitives=self._min_primitives,
                 max_primitives=self._max_primitives,
             )

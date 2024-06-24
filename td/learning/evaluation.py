@@ -46,7 +46,7 @@ class OneStepEvaluator(object):
 
         def sample_fn():
             sample = sampler.sample(
-                env.grammar.start_symbol,
+                env.grammar.sample_start_symbol,
                 min_primitives=min_primitives,
                 max_primitives=max_primitives,
             )
@@ -179,7 +179,7 @@ class AREvaluator(object):
 
         def sample_fn():
             return sampler.sample(
-                env.grammar.start_symbol,
+                env.grammar.sample_start_symbol,
                 min_primitives=min_primitives,
                 max_primitives=max_primitives,
             )
