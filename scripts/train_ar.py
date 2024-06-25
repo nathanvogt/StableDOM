@@ -25,7 +25,7 @@ flags.DEFINE_string("checkpoint_dir", "checkpoints", "Checkpoint directory")
 flags.DEFINE_integer("checkpoint_steps", 10000, "Checkpoint steps")
 flags.DEFINE_integer("num_workers", 16, "Number of workers for data loading")
 flags.DEFINE_float("learning_rate", 3e-4, "Learning rate")
-flags.DEFINE_bool("wandb", True, "Log to wandb")
+flags.DEFINE_bool("wandb", False, "Log to wandb")
 flags.DEFINE_string("env", "rainbow", "Environment to use")
 flags.DEFINE_integer("num_test_expressions", 256, "Number of test expressions")
 flags.DEFINE_integer("max_sequence_length", 512, "Maximum sequence length")
@@ -230,11 +230,11 @@ def main(argv):
         "num_image_tokens": FLAGS.num_image_tokens,
     }
 
-    if FLAGS.wandb:
-        wandb.init(
-            project="tree-diffusion",
-            config=config,
-        )
+    # if FLAGS.wandb:
+    #     wandb.init(
+    #         project="tree-diffusion",
+    #         config=config,
+    #     )
 
     model = TreeDiffusion(
         TransformerConfig(
@@ -319,13 +319,13 @@ def main(argv):
             mean_loss = metrics[0].item()
             logging.info(f"Step {step + 1}, Loss: {mean_loss:.4f}")
 
-            if FLAGS.wandb:
-                wandb.log(
-                    {
-                        "loss": mean_loss,
-                    },
-                    step=step + 1,
-                )
+            # if FLAGS.wandb:
+            #     wandb.log(
+            #         {
+            #             "loss": mean_loss,
+            #         },
+            #         step=step + 1,
+            #     )
 
             batch_metrics.clear()
 

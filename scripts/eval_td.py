@@ -33,22 +33,9 @@ flags.DEFINE_string("device", "cuda", "Device to use")
 
 FLAGS = flags.FLAGS
 
-# html_dsl = """
-# (Div (Style (Junct border: 2px green width: 100%))
-# (Compose
-# (Div (Style (Junct border: 3px blue width: 100%)) (P '12'))
-# (Compose
-# (Div (Style margin-left: 36px) (P 'F'))
-# (Compose
-# (Compose
-# (Div (Style (Junct border: 2px blue (Junct width: 50% (Junct margin-left: auto margin-right: auto))))  (Compose (P '100') (Compose (P '100') (P '100'))))
-# (Div (Style (Junct width: 24% (Junct margin-right: 8px margin-left: auto))) (P '8'))
-# )
-# (Div (Style (Junct border: 2px red (Junct margin-top: 50px width: 100%)))(Div (Style (Junct width: 24% (Junct height: 24px (Junct margin-left: auto margin-right: auto)))) (P '12'))))))
-# )
-# """
+html_dsl = "(Div (Junct border:2px green width:100%) (Compose (Div (Junct border:3px blue width:100%) (P '12')) (Compose (Div margin-left:36px (P '10')) (Compose (Compose (Div (Junct border:2px blue (Junct width:50% (Junct margin-left:auto margin-right:auto))) (Compose (P '100') (Compose (P '100') (P '100')))) (Div (Junct width:24% (Junct margin-right:8px margin-left:auto)) (P '8'))) (Div (Junct border:2px red (Junct margin-top:50px width:100%)) (Div (Junct width:24% (Junct height:24px (Junct margin-left:auto margin-right:auto))) (P '12')))))))"
 # html_dsl = "".join(html_dsl.split())
-html_dsl = "(Compose (Div margin-top:auto (P '2')) (Div (Junct (Junct margin-right:auto margin-right:24%) background-color:blue) (Compose (P '7') (P '2'))))"
+# html_dsl = "(Compose (Div margin-top:auto (P '2')) (Div (Junct (Junct margin-right:auto margin-right:24%) background-color:blue) (Compose (P '7') (P '2'))))"
 
 
 class CPU_Unpickler(pickle.Unpickler):
@@ -79,7 +66,7 @@ def load_model(checkpoint_name, device):
     d_model = config["d_model"]
     n_layers = config["n_layers"]
     num_heads = config["num_heads"]
-    max_sequence_length = config["max_sequence_length"]
+    max_sequence_length = 1024  # config["max_sequence_length"]
     target_observation = config["target_observation"]
 
     # for key, value in config.items():
