@@ -372,7 +372,6 @@ def forward_process_with_path(
     force_mode: str = None,
     return_full_path: bool = False,
 ) -> Tuple[str, Mutation]:
-    expression = "(Compose (P '11') (Compose (Div height:0px (Div (Junct margin-bottom:10% margin-bottom:0%) (P '12'))) (Div width:100px (P '4'))))"
     mode = (
         force_mode
         if force_mode is not None
@@ -386,7 +385,6 @@ def forward_process_with_path(
         mutated_expression, _ = forward_process(expression, num_steps, grammar, sampler)
     else:
         raise ValueError("Invalid mode")
-    mutated_expression = "(Div height:3px (P '14'))"
     path = find_path(
         mutated_expression, expression, grammar, sampler, small_primitive_count
     )

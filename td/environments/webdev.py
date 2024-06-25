@@ -14,11 +14,12 @@ import io
 
 grammar_spec = r"""
 s: element | style_element
-element: div | paragraph | compose
+element: compose | div | paragraph | button
 compose: "(" "Compose" " " element " " element ")"
 div: "(" "Div" " " style_element " " element ")"
 paragraph: "(" "P" " " "'" text "'" ")"
 text: number -> loremipsum
+button: "(" "Button" ")" -> butt
 
 style_element: style_pair | style_junct
 style_junct: "(" "Junct" " " style_element " " style_element ")"
@@ -52,6 +53,9 @@ class HTMLTransformer(Transformer):
     @v_args(inline=True)
     def text(self, text):
         return text.strip()
+
+    def butt(self, _):
+        return "<button>Button</button>"
 
     def style_border(self, children):
         (size, unit, color) = children
@@ -265,7 +269,7 @@ class HTML(Environment):
             grammar_spec,
             start="s",
             sample_start="element",
-            primitives=["paragraph", "style_pair"],
+            primitives=["paragraph", "button", "style_pair"],
         )
         self._compiler = HTMLCompiler()
         self._goal_checker = GaussianImageGoalChecker(self.compiled_shape)

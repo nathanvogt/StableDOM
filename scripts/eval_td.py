@@ -166,7 +166,7 @@ def create_generator(initial_img):
     batch_targets = target_image_torch.repeat(FLAGS.num_replicas, 1, 1, 1)
 
     initial_expressions = [
-        "(Div (Junct border:2px green width:100%) (P '12'))"
+        "(Compose (Div border:2px green (P '24')) (Div (Junct border:2px red background-color:green) (P '36')))"
         # html_dsl
         # "(Circle 0 0 0)"
     ]

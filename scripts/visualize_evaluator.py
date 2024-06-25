@@ -43,14 +43,14 @@ def print_some_batches(batch_size):
         batch_size=batch_size,
         env=env,
         min_steps=1,
-        max_steps=4,
-        max_sequence_length=512,
+        max_steps=25,
+        max_sequence_length=1024,
         min_primitives=1,
-        max_primitives=8,
+        max_primitives=2,
         forward_mode="path",
         target_observation=False,
         current_observation=False,
-        random_mix=0.2,
+        random_mix=0.25,
     )
     start_time = time.time()
     batch = next(iter(dataset))
