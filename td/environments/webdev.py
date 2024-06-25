@@ -209,18 +209,20 @@ class HTMLCompiler(Compiler):
         chrome_options = Options()
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--disable-extensions")
         chrome_options.add_argument(f"--window-size={_SCREEN_WIDTH},{_SCREEN_HEIGHT}")
+        chrome_options.add_argument("--blink-settings=imagesEnabled=false")
         self._driver = webdriver.Chrome(options=chrome_options)
+        self._driver.get("about:blank")
 
     def compile(self, expression: Tree):
-        content = self._expression_to_html.transform(expression)
-        html = f"<html><body>{content}</body></html>"
-
-        self._driver.get("data:text/html;charset=utf-8," + html)
+        content = self._expression_to_html.transform(expression).replace("'", "\\'")
+        self._driver.execute_script(f"document.body.innerHTML = '{content}'")
         png = self._driver.get_screenshot_as_png()
 
         image = Image.open(io.BytesIO(png))
-
         if image.mode != "RGB":
             image = image.convert("RGB")
 

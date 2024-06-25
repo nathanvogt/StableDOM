@@ -38,10 +38,10 @@ def print_some_samples():
 
 
 def print_some_batches(batch_size):
-    # env = HTML()
+    env = HTML()
     dataset = TreeDiffusionDataset(
         batch_size=batch_size,
-        env_name="html",
+        env=env,
         min_steps=1,
         max_steps=4,
         max_sequence_length=512,
@@ -82,7 +82,7 @@ def time_batch_loading(env_class, num_batches=10):
     env = env_class()
     dataset = TreeDiffusionDataset(
         batch_size=1,
-        env_name=env.name(),
+        env=env,
         min_steps=1,
         max_steps=5,
         max_sequence_length=512,

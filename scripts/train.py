@@ -68,7 +68,7 @@ class TreeDiffusionDataset(IterableDataset):
     def __init__(
         self,
         batch_size,
-        env_name,
+        env: Environment,
         min_steps,
         max_steps,
         max_sequence_length,
@@ -79,7 +79,7 @@ class TreeDiffusionDataset(IterableDataset):
         current_observation,
         random_mix,
     ):
-        self._env_name = env_name
+        self._env_name = env.name()
         self._batch_size = batch_size
         self._min_steps = min_steps
         self._max_steps = max_steps
@@ -91,7 +91,7 @@ class TreeDiffusionDataset(IterableDataset):
         self._current_observation = current_observation
         self._random_mix = random_mix
 
-        self._env: Environment = environments[self._env_name]()
+        self._env = env
 
     def _produce_batch(self):
         try:
