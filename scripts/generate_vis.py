@@ -7,8 +7,6 @@ def visualize(step_generator):
     plt.ion()
     fig, (ax1, ax2) = plt.subplots(1, 2)
 
-    plt.get_current_fig_manager().full_screen_toggle()
-
     expressions = []
     target_expression, target_image = next(step_generator())
 
@@ -27,5 +25,3 @@ def visualize(step_generator):
         ax2.clear()
 
     # print(expressions)
-
-    plt.get_current_fig_manager().window.state("zoomed")

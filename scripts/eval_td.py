@@ -28,29 +28,27 @@ flags.DEFINE_integer("evaluation_batch_size", 16, "Batch size for evaluation")
 flags.DEFINE_integer("num_replicas", 1, "Batch size for evaluation")
 flags.DEFINE_float("temperature", 1.0, "Temperature for sampling")
 flags.DEFINE_string("evaluation_dir", "evals", "Evaluations directory")
-flags.DEFINE_bool("wandb", True, "Log to wandb")
+flags.DEFINE_bool("wandb", False, "Log to wandb")
 flags.DEFINE_string("device", "cuda", "Device to use")
-flags.DEFINE_string("save_path", None, "Path to save the results")
-flags.DEFINE_string("difficulty", "easy", "difficulty of the problem (for demo)")
 
 FLAGS = flags.FLAGS
 
-html_dsl = """
-(Div (Style (Junct border: 2px green width: 100%))
-(Compose
-(Div (Style (Junct border: 3px blue width: 100%)) (P '12'))
-(Compose 
-(Div (Style margin-left: 36px) (P 'F'))
-(Compose
-(Compose
-(Div (Style (Junct border: 2px blue (Junct width: 50% (Junct margin-left: auto margin-right: auto))))  (Compose (P '100') (Compose (P '100') (P '100'))))
-(Div (Style (Junct width: 24% (Junct margin-right: 8px margin-left: auto))) (P '8'))
-)
-(Div (Style (Junct border: 2px red (Junct margin-top: 50px width: 100%)))(Div (Style (Junct width: 24% (Junct height: 24px (Junct margin-left: auto margin-right: auto)))) (P '12'))))))
-)
-"""
-# strip newlines and whitespace from the DSL
-html_dsl = "".join(html_dsl.split())
+# html_dsl = """
+# (Div (Style (Junct border: 2px green width: 100%))
+# (Compose
+# (Div (Style (Junct border: 3px blue width: 100%)) (P '12'))
+# (Compose
+# (Div (Style margin-left: 36px) (P 'F'))
+# (Compose
+# (Compose
+# (Div (Style (Junct border: 2px blue (Junct width: 50% (Junct margin-left: auto margin-right: auto))))  (Compose (P '100') (Compose (P '100') (P '100'))))
+# (Div (Style (Junct width: 24% (Junct margin-right: 8px margin-left: auto))) (P '8'))
+# )
+# (Div (Style (Junct border: 2px red (Junct margin-top: 50px width: 100%)))(Div (Style (Junct width: 24% (Junct height: 24px (Junct margin-left: auto margin-right: auto)))) (P '12'))))))
+# )
+# """
+# html_dsl = "".join(html_dsl.split())
+html_dsl = "(Compose (Div margin-top:auto (P '2')) (Div (Junct (Junct margin-right:auto margin-right:24%) background-color:blue) (Compose (P '7') (P '2'))))"
 
 
 class CPU_Unpickler(pickle.Unpickler):
@@ -84,8 +82,8 @@ def load_model(checkpoint_name, device):
     max_sequence_length = config["max_sequence_length"]
     target_observation = config["target_observation"]
 
-    for key, value in config.items():
-        logging.info(f"{key}: {value}")
+    # for key, value in config.items():
+    # logging.info(f"{key}: {value}")
 
     env: Environment = environments[env_name]()
     sampler = ConstrainedRandomSampler(env.grammar)
@@ -143,11 +141,11 @@ def create_generator(initial_img):
         "num_replicas": FLAGS.num_replicas,
     }
 
-    if wandb:
-        wandb.init(
-            project="tree-diffusion",
-            config=config,
-        )
+    # if wandb:
+    #     wandb.init(
+    #         project="tree-diffusion",
+    #         config=config,
+    #     )
 
     # with open(FLAGS.problem_filename, "rb") as f:
     # target_expressions = ["(- (+ (Quad 4 0 F 4 G) (Quad C 0 F 4 G)) (Circle 1 2 1))"]
@@ -157,9 +155,9 @@ def create_generator(initial_img):
 
     # target_expressions = [html_dsl]
 
-    hard = ["(+ (- (Circle 8 6 8) (Circle 5 8 8)) (- (Circle 2 9 A) (Quad 9 A 2 2 H)))"]
-    easy = ["(+ (- (Circle 8 6 8) (Circle 5 8 8)) (Circle 2 9 A))"]
-    target_expressions = easy if FLAGS.difficulty == "easy" else hard
+    # hard = ["(+ (- (Circle 8 6 8) (Circle 5 8 8)) (- (Circle 2 9 A) (Quad 9 A 2 2 H)))"]
+    # easy = ["(+ (- (Circle 8 6 8) (Circle 5 8 8)) (Circle 2 9 A))"]
+    target_expressions = [html_dsl]
 
     target_images = np.array(
         [
@@ -181,9 +179,9 @@ def create_generator(initial_img):
     batch_targets = target_image_torch.repeat(FLAGS.num_replicas, 1, 1, 1)
 
     initial_expressions = [
-        # "(Div (Style (Junct border: 2px green width: 100%)) (P '12'))"
+        "(Div (Junct border:2px green width:100%) (P '12'))"
         # html_dsl
-        "(Circle 0 0 0)"
+        # "(Circle 0 0 0)"
     ]
 
     current_expressions = [x for x in initial_expressions]
