@@ -91,6 +91,8 @@ class TreeDiffusionDataset(IterableDataset):
         self._current_observation = current_observation
         self._random_mix = random_mix
 
+        self._env: Environment = environments[self._env_name]()
+
     def _produce_batch(self):
         try:
 
@@ -158,8 +160,6 @@ class TreeDiffusionDataset(IterableDataset):
                 )
                 for expression, _ in training_examples
             ]
-            print(f"target expressions: {target_expressions}\n")
-            print(f"training examples: {training_examples}\n")
         except Exception as e:
             print("Restarting")
             logging.warning(f"Failed to compile: {e}")
@@ -223,7 +223,6 @@ class TreeDiffusionDataset(IterableDataset):
             np.random.seed(worker_info.id)
             random.seed(worker_info.id)
 
-        self._env: Environment = environments[self._env_name]()
         self._sampler = ConstrainedRandomSampler(self._env.grammar)
         self._tokenizer = Tokenizer(
             self._env.grammar,
@@ -232,9 +231,7 @@ class TreeDiffusionDataset(IterableDataset):
         )
 
         while True:
-            batch = self._produce_batch()
-            yield batch
-            # yield None
+            yield self._produce_batch()
 
 
 def loss_fn(model, batch):
@@ -277,11 +274,6 @@ def batch_to_torch(batch, device="cpu"):
         mutated_images.to(device).float(),
         steps.to(device).long(),
     )
-    del tokens
-    del mask
-    del target_images
-    del mutated_images
-    del steps
     return res
 
 

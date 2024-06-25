@@ -37,51 +37,42 @@ def print_some_samples():
         plt.show()
 
 
-def print_some_batches(batch_size, env):
-    device = "cpu"
+def print_some_batches(batch_size):
+    # env = HTML()
     dataset = TreeDiffusionDataset(
         batch_size=batch_size,
-        env_name=env.name(),
+        env_name="html",
         min_steps=1,
-        max_steps=5,
+        max_steps=4,
         max_sequence_length=512,
-        min_primitives=2,
+        min_primitives=1,
         max_primitives=8,
         forward_mode="path",
         target_observation=False,
         current_observation=False,
-        random_mix=0.25,
+        random_mix=0.2,
     )
+    start_time = time.time()
     batch = next(iter(dataset))
-    tokenized, context_tokens_mask, target_images, mutated_images, steps = batch
-
-    # Create a figure with scrollable subplot
+    end_time = time.time()
+    print(f"Time to load batch: {end_time - start_time:.4f} seconds")
+    _, _, target_images, mutated_images, _ = batch
     fig = plt.figure(figsize=(10, 5 * batch_size))
     gs = GridSpec(batch_size, 2, figure=fig)
-
     for i in range(batch_size):
         target_img = np.transpose(target_images[i], (1, 2, 0))
         mutated_img = np.transpose(mutated_images[i], (1, 2, 0))
-
-        # Plot target image
         ax1 = fig.add_subplot(gs[i, 0])
         ax1.imshow(target_img)
         ax1.set_title(f"Target {i+1}")
         ax1.axis("off")
-
-        # Plot mutated image
         ax2 = fig.add_subplot(gs[i, 1])
         ax2.imshow(mutated_img)
         ax2.set_title(f"Mutated {i+1}")
         ax2.axis("off")
-
     plt.tight_layout()
-
-    # Make the figure scrollable
     plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
     fig.set_size_inches(10, 5 * batch_size)
-
-    # Show the plot
     plt.show()
 
 
@@ -138,7 +129,7 @@ def compare_env_loading_times(num_batches=10, num_runs=5):
 
 def main():
     # print_some_samples()
-    print_some_batches(batch_size=6, env=HTML())
+    print_some_batches(batch_size=6)
 
 
 if __name__ == "__main__":

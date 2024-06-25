@@ -46,8 +46,6 @@ class Tokenizer(object):
         self._eos_token = self._token_to_index["<EOS>"]
 
     def _prefix_match_trie(self, current_expression: str):
-        # print trie
-        # print(self._trie.items())
         return self._trie.longest_prefix(current_expression)
 
     def _prefix_match(self, current_expression: str):

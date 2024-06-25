@@ -36,7 +36,7 @@ flags.DEFINE_integer("evaluation_batch_size", 16, "Batch size for evaluation")
 flags.DEFINE_integer("num_replicas", 32, "Batch size for evaluation")
 flags.DEFINE_float("temperature", 0.7, "Temperature for sampling")
 flags.DEFINE_string("evaluation_dir", "evals", "Evaluations directory")
-flags.DEFINE_bool("wandb", True, "Log to wandb")
+flags.DEFINE_bool("wandb", False, "Log to wandb")
 flags.DEFINE_string("device", "cuda", "Device to use")
 
 FLAGS = flags.FLAGS

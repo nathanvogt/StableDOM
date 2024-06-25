@@ -2,19 +2,15 @@ from lark import Transformer, Tree, v_args
 from td.grammar import Compiler, Grammar
 from td.environments.environment import Environment
 from td.environments.goal_checker import GaussianImageGoalChecker
+import numpy as np
 from PIL import Image as PILImage
-import numpy as np
-
-from PIL import Image
-import numpy as np
-
-import numpy as np
-from PIL import Image
 from io import BytesIO
-
+import imgkit
+from lark import Tree
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-import imgkit
+from PIL import Image
+import io
 
 grammar_spec = r"""
 s: element | style_element
@@ -205,58 +201,26 @@ class HTMLTransformer(Transformer):
         return "%"
 
 
-def resize_image(image, new_width, new_height):
-    original_height, original_width, _ = image.shape
-
-    height_ratio = new_height / original_height
-    width_ratio = new_width / original_width
-    resize_ratio = min(height_ratio, width_ratio)
-
-    intermediate_height = int(original_height * resize_ratio)
-    intermediate_width = int(original_width * resize_ratio)
-
-    resized_image = np.zeros(
-        (intermediate_height, intermediate_width, 3), dtype=image.dtype
-    )
-    for i in range(intermediate_height):
-        for j in range(intermediate_width):
-            x = int(j / resize_ratio)
-            y = int(i / resize_ratio)
-            resized_image[i, j, :] = image[y, x, :]
-
-    final_image = np.zeros((new_height, new_width, 3), dtype=image.dtype)
-    start_x = (new_width - intermediate_width) // 2
-    start_y = (new_height - intermediate_height) // 2
-
-    final_image[
-        start_y : start_y + intermediate_height,
-        start_x : start_x + intermediate_width,
-        :,
-    ] = resized_image
-
-    return final_image
-
-
 class HTMLCompiler(Compiler):
     def __init__(self):
         super().__init__()
+        print("Initializing HTMLCompiler")
         self._expression_to_html = HTMLTransformer()
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument(f"--window-size={_SCREEN_WIDTH},{_SCREEN_HEIGHT}")
+        self._driver = webdriver.Chrome(options=chrome_options)
 
     def compile(self, expression: Tree):
         content = self._expression_to_html.transform(expression)
         html = f"<html><body>{content}</body></html>"
-        img_raw = imgkit.from_string(
-            html,
-            False,
-            options={
-                "format": "png",
-                "height": _SCREEN_HEIGHT,
-                "width": _SCREEN_WIDTH,
-                "quiet": "",
-            },
-        )
-        stream = BytesIO(img_raw)
-        image = PILImage.open(stream)
+
+        self._driver.get("data:text/html;charset=utf-8," + html)
+        png = self._driver.get_screenshot_as_png()
+
+        image = Image.open(io.BytesIO(png))
+
         if image.mode != "RGB":
             image = image.convert("RGB")
 
@@ -286,7 +250,6 @@ class HTMLCompiler(Compiler):
 
         image_array = np.array(new_image)
         image.close()
-        stream.close()
         return image_array / 255.0
 
 
