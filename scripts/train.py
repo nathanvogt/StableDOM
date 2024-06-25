@@ -332,7 +332,7 @@ def main(argv):
 
     if FLAGS.wandb:
         wandb.init(
-            project="tree-diffusion",
+            project="stabledom",
             config=config,
         )
 
