@@ -254,6 +254,9 @@ class HTMLCompiler(Compiler):
         image.close()
         return image_array / 255.0
 
+    def __del__(self):
+        self._driver.quit()
+
 
 class HTML(Environment):
     def __init__(self):
