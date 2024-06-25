@@ -161,9 +161,9 @@ class TreeDiffusionDataset(IterableDataset):
                 for expression, _ in training_examples
             ]
             # print target examples and trianing examples
-            print("target_expressions", "\n".join(target_expressions))
-            print("\n")
-            print("training_examples", "\n".join([x[0] for x in training_examples]))
+            # print("target_expressions", "\n".join(target_expressions))
+            # print("\n")
+            # print("training_examples", "\n".join([x[0] for x in training_examples]))
         except Exception as e:
             print("Restarting")
             logging.warning(f"Failed to compile: {e}")
