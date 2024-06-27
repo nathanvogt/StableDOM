@@ -1,3 +1,4 @@
+import io
 import os
 import pickle
 import random
@@ -25,9 +26,9 @@ flags.DEFINE_integer("checkpoint_steps", 10000, "Checkpoint steps")
 flags.DEFINE_integer("num_workers", 16, "Number of workers for data loading")
 flags.DEFINE_integer("max_steps", 5, "Minimum number of steps")
 flags.DEFINE_float("learning_rate", 3e-4, "Learning rate")
-flags.DEFINE_bool("wandb", True, "Log to wandb")
+flags.DEFINE_bool("wandb", False, "Log to wandb")
 flags.DEFINE_string("env", "rainbow", "Environment to use")
-flags.DEFINE_integer("max_sequence_length", 512, "Maximum sequence length")
+flags.DEFINE_integer("max_sequence_length", 1024, "Maximum sequence length")
 flags.DEFINE_integer("min_primitives", 2, "Minimum number of primitives")
 flags.DEFINE_integer("max_primitives", 8, "Maximum number of primitives")
 flags.DEFINE_integer("n_layers", 3, "Number of layers")
@@ -46,7 +47,7 @@ class ValueNetDataset(IterableDataset):
     def __init__(
         self,
         batch_size,
-        env_name,
+        env,
         min_steps,
         max_steps,
         min_primitives,
@@ -54,7 +55,7 @@ class ValueNetDataset(IterableDataset):
         target_observation,
         current_observation,
     ):
-        self._env_name = env_name
+        self._env_name = env.name()
         self._batch_size = batch_size
         self._min_steps = min_steps
         self._max_steps = max_steps
@@ -62,6 +63,7 @@ class ValueNetDataset(IterableDataset):
         self._max_primitives = max_primitives
         self._target_observation = target_observation
         self._current_observation = current_observation
+        self._env: Environment = environments[self._env_name]()
 
     def _produce_batch(self):
         def sample_fn():
@@ -120,7 +122,6 @@ class ValueNetDataset(IterableDataset):
             np.random.seed(worker_info.id)
             random.seed(worker_info.id)
 
-        self._env: Environment = environments[self._env_name]()
         self._sampler = ConstrainedRandomSampler(self._env.grammar)
 
         while True:
@@ -192,15 +193,25 @@ def main(argv):
 
     if FLAGS.wandb:
         wandb.init(
-            project="tree-diffusion",
+            project="stabledom-value",
             config=config,
         )
 
     if FLAGS.base_model_path is None or not os.path.exists(FLAGS.base_model_path):
         raise ValueError(f"Invalid base model path: {FLAGS.base_model_path}")
 
+    class CPU_Unpickler(pickle.Unpickler):
+        def find_class(self, module, name):
+            if module == "torch.storage" and name == "_load_from_bytes":
+                return lambda b: torch.load(io.BytesIO(b), map_location="cpu")
+            else:
+                return super().find_class(module, name)
+
     with open(FLAGS.base_model_path, "rb") as f:
-        base_model_state = pickle.load(f)
+        if torch.cuda.is_available():
+            base_model_state = pickle.load(f)
+        else:
+            base_model_state = CPU_Unpickler(f).load()
 
     base_model_config = base_model_state["config"]
     base_model_state = base_model_state["model"]
@@ -269,7 +280,7 @@ def main(argv):
 
     dataset = ValueNetDataset(
         batch_size,
-        env_name,
+        env,
         1,
         max_steps,
         min_primitives,

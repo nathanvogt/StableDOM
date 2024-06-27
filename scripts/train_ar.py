@@ -230,11 +230,11 @@ def main(argv):
         "num_image_tokens": FLAGS.num_image_tokens,
     }
 
-    # if FLAGS.wandb:
-    #     wandb.init(
-    #         project="tree-diffusion",
-    #         config=config,
-    #     )
+    if FLAGS.wandb:
+        wandb.init(
+            project="stabledom-ar",
+            config=config,
+        )
 
     model = TreeDiffusion(
         TransformerConfig(
