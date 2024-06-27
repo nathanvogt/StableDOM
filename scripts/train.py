@@ -68,7 +68,7 @@ class TreeDiffusionDataset(IterableDataset):
     def __init__(
         self,
         batch_size,
-        env: Environment,
+        env_name: str,
         min_steps,
         max_steps,
         max_sequence_length,
@@ -79,7 +79,8 @@ class TreeDiffusionDataset(IterableDataset):
         current_observation,
         random_mix,
     ):
-        self._env_name = env.name()
+        self._env = None
+        self._env_name = env_name
         self._batch_size = batch_size
         self._min_steps = min_steps
         self._max_steps = max_steps
@@ -90,8 +91,6 @@ class TreeDiffusionDataset(IterableDataset):
         self._target_observation = target_observation
         self._current_observation = current_observation
         self._random_mix = random_mix
-
-        self._env = env
 
     def _produce_batch(self):
         try:
@@ -226,6 +225,9 @@ class TreeDiffusionDataset(IterableDataset):
         if worker_info is not None:
             np.random.seed(worker_info.id)
             random.seed(worker_info.id)
+
+        if self._env is None:
+            self._env = environments[self._env_name]()
 
         self._sampler = ConstrainedRandomSampler(self._env.grammar)
         self._tokenizer = Tokenizer(
@@ -395,7 +397,7 @@ def main(argv):
 
     dataset = TreeDiffusionDataset(
         batch_size=batch_size,
-        env=env,
+        env_name="html",
         min_steps=1,
         max_steps=max_steps,
         max_sequence_length=max_sequence_length,
@@ -409,7 +411,6 @@ def main(argv):
 
     dataloader = DataLoader(dataset, batch_size=None, num_workers=FLAGS.num_workers)
     model.train()
-
     for batch in dataloader:
         batch = batch_to_torch(batch, FLAGS.device)
         loss, aux = loss_fn(model, batch)
