@@ -42,9 +42,10 @@ class DecoderState(object):
 
         for n in nodes:
             self._position_to_nodes[n.meta.start_pos].append(n)
-
         self._edit_spans = {x.meta.start_pos: x.meta.end_pos for x in nodes}
+
         self._possible_starts = set(self._edit_spans.keys())
+
         self._possible_start_tokens = np.array(
             [
                 self._tokenizer.position_token(
@@ -126,7 +127,7 @@ class DecoderState(object):
             start = self._token_positions_to_real[
                 self._tokenizer.token_to_position(start_token)
             ]
-            end = self._edit_spans[start]
+            end = self._edit_spans[(start, start_token)]
             rv.append((start, end, prob))
         return rv
 
@@ -137,12 +138,23 @@ class DecoderState(object):
             self._current_start = self._token_positions_to_real[
                 self._tokenizer.token_to_position(token)
             ]
-            self._current_end = self._edit_spans[self._current_start]
             self._decode_state = DecoderState.States.TOKEN
             position_rule = self._position_rule(self._current_start)
             self._interactive_parser = self._grammar._lark_parser_for_start[
                 position_rule
             ].parse_interactive(start=position_rule)
+
+            # Find the correct end position based on the selected rule
+            for node in self._position_to_nodes[self._current_start]:
+                if self._node_rule(node) == position_rule:
+                    self._current_end = node.meta.end_pos
+                    break
+            else:
+                raise ValueError(
+                    f"Could not find end position for rule {position_rule}"
+                )
+                self._current_end = self._edit_spans[self._current_start]
+
             self._recompute_mask()
         elif self._decode_state == DecoderState.States.TOKEN:
             token_str = self._tokenizer._index_to_token[token]
@@ -266,16 +278,18 @@ def sample_model_kv(
 
                 decode_states[i].feed_token(
                     token,
-                    probs=probs[i].numpy()
-                    if return_probs
-                    and decode_states[i]._decode_state == DecoderState.States.POSITION
-                    else None,
+                    probs=(
+                        probs[i].numpy()
+                        if return_probs
+                        and decode_states[i]._decode_state
+                        == DecoderState.States.POSITION
+                        else None
+                    ),
                 )
                 current_tokens[i, current_position + 1] = sampled_tokens[i].item()
 
             # Update current tokens and positions.
             current_position += 1
-
         return [x.get_mutation() if not return_probs else x for x in decode_states]
 
 

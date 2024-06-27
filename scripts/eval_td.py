@@ -7,6 +7,7 @@ import base64
 from PIL import Image
 
 from td.environments import Environment, environments
+from td.environments.webdev import HTML
 from td.learning.tokenizer import Tokenizer
 from td.learning.gpt import TreeDiffusion, TransformerConfig
 from td.samplers import ConstrainedRandomSampler
@@ -33,9 +34,9 @@ flags.DEFINE_string("device", "cuda", "Device to use")
 
 FLAGS = flags.FLAGS
 
-html_dsl = "(Div (Junct border:2px green width:100%) (Compose (Div (Junct border:3px blue width:100%) (P '12')) (Compose (Div margin-left:36px (P '10')) (Compose (Compose (Div (Junct border:2px blue (Junct width:50% (Junct margin-left:auto margin-right:auto))) (Compose (P '100') (Compose (P '100') (P '100')))) (Div (Junct width:24% (Junct margin-right:8px margin-left:auto)) (P '8'))) (Div (Junct border:2px red (Junct margin-top:50px width:100%)) (Div (Junct width:24% (Junct height:24px (Junct margin-left:auto margin-right:auto))) (P '12')))))))"
+# html_dsl = "(Div (Junct border:2px green width:100%) (Compose (Div (Junct border:3px blue width:100%) (P '12')) (Compose (Div margin-left:36px (P '10')) (Compose (Compose (Div (Junct border:2px blue (Junct width:50% (Junct margin-left:auto margin-right:auto))) (Compose (P '100') (Compose (P '100') (P '100')))) (Div (Junct width:24% (Junct margin-right:8px margin-left:auto)) (P '8'))) (Div (Junct border:2px red (Junct margin-top:50px width:100%)) (Div (Junct width:24% (Junct height:24px (Junct margin-left:auto margin-right:auto))) (P '12')))))))"
 # html_dsl = "".join(html_dsl.split())
-# html_dsl = "(Compose (Div margin-top:auto (P '2')) (Div (Junct (Junct margin-right:auto margin-right:24%) background-color:blue) (Compose (P '7') (P '2'))))"
+html_dsl = "(Compose (Div margin-top:5px (P '2')) (Div (Junct (Junct margin-right:10% margin-right:24%) background-color:blue) (Compose (P '7') (P '2'))))"
 
 
 class CPU_Unpickler(pickle.Unpickler):
@@ -91,7 +92,6 @@ def load_model(checkpoint_name, device):
         input_channels=env.compiled_shape[-1],
         image_model_name=image_model,
     )
-
     model.load_state_dict(state["model"])
     model.to(device)
 
@@ -144,7 +144,13 @@ def create_generator(initial_img):
 
     # hard = ["(+ (- (Circle 8 6 8) (Circle 5 8 8)) (- (Circle 2 9 A) (Quad 9 A 2 2 H)))"]
     # easy = ["(+ (- (Circle 8 6 8) (Circle 5 8 8)) (Circle 2 9 A))"]
-    target_expressions = [html_dsl]
+
+    env = HTML()
+    sampler = ConstrainedRandomSampler(env.grammar)
+    expression = sampler.sample(
+        env.grammar.sample_start_symbol, min_primitives=1, max_primitives=12
+    )
+    target_expressions = [expression]
 
     target_images = np.array(
         [
@@ -166,7 +172,11 @@ def create_generator(initial_img):
     batch_targets = target_image_torch.repeat(FLAGS.num_replicas, 1, 1, 1)
 
     initial_expressions = [
-        "(Compose (Div border:2px green (P '24')) (Div (Junct border:2px red background-color:green) (P '36')))"
+        # "(Div margin-left:auto (P '12'))"
+        # "(Compose (Div border:2px green (P '24')) (Div (Junct border:2px red background-color:green) (P '36')))"
+        sampler.sample(
+            env.grammar.sample_start_symbol, min_primitives=1, max_primitives=12
+        )
         # html_dsl
         # "(Circle 0 0 0)"
     ]
@@ -225,6 +235,7 @@ def create_generator(initial_img):
             for image_i in range(len(current_images)):
                 if env.goal_reached(current_images[image_i], target_images[problem_i]):
                     steps_to_solve[problem_i] = current_steps + image_i + 1
+                    print("Goal reached")
                     break
                 values.append(
                     env._goal_checker.goal_reached_value(

@@ -24,15 +24,16 @@ button: "(" "Button" ")" -> butt
 style_element: style_pair | style_junct
 style_junct: "(" "Junct" " " style_element " " style_element ")"
 style_pair: style_border | style_width | style_height | style_margin_top | style_margin_left | style_margin_right | style_margin_bottom | style_background_color
+
 style_border: "border" ":" size unit " " color
 style_background_color: "background-color" ":" color
 style_width: "width" ":" size unit
 style_height: "height" ":" size unit
-margin_value: size unit | "auto" -> auto
 style_margin_top: "margin-top" ":" margin_value
 style_margin_left: "margin-left" ":" margin_value
 style_margin_right: "margin-right" ":" margin_value
 style_margin_bottom: "margin-bottom" ":" margin_value
+margin_value: size unit | "auto" -> auto
 
 color: "red" -> red | "blue" -> blue | "green" -> green
 number: "0" -> zero | "1" -> one | "2" -> two | "3" -> three | "4" -> four | "5" -> five | "6" -> six | "7" -> seven | "8" -> eight | "9" -> nine | "10" -> ten | "11" -> eleven | "12" -> twelve | "13" -> thirteen | "14" -> fourteen | "15" -> fifteen | "24" -> twentyfour | "36" -> thirtysix | "50" -> fifty | "100" -> hundred
