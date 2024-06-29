@@ -42,10 +42,10 @@ def print_some_batches(batch_size):
         batch_size=batch_size,
         env_name="html",
         min_steps=1,
-        max_steps=25,
+        max_steps=5,
         max_sequence_length=1024,
         min_primitives=1,
-        max_primitives=50,
+        max_primitives=16,
         forward_mode="path",
         target_observation=False,
         current_observation=False,
@@ -128,7 +128,7 @@ def compare_env_loading_times(num_batches=10, num_runs=5):
 
 def main():
     # print_some_samples()
-    print_some_batches(batch_size=6)
+    print_some_batches(batch_size=4)
 
 
 if __name__ == "__main__":

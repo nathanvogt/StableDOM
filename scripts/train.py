@@ -397,7 +397,7 @@ def main(argv):
 
     dataset = TreeDiffusionDataset(
         batch_size=batch_size,
-        env_name="html",
+        env_name=FLAGS.env,
         min_steps=1,
         max_steps=max_steps,
         max_sequence_length=max_sequence_length,

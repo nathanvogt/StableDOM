@@ -21,7 +21,7 @@ def visualize(step_generator):
         ax2.set_title(expression[0])
         ax2.axis("off")
         plt.draw()
-        plt.pause(0.75)
+        plt.pause(0.25)
         ax2.clear()
 
     # print(expressions)

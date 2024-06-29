@@ -125,7 +125,8 @@ def main(argv):
         )
 
     target_expressions = [
-        "(Compose (Div margin-top:5px (P '2')) (Div (Junct (Junct margin-right:10% margin-right:24%) background-color:blue) (Compose (P '7') (P '2'))))"
+        sampler.sample(env.grammar.sample_start_symbol)
+        for _ in range(FLAGS.evaluation_batch_size)
     ]
 
     target_images = np.array(
