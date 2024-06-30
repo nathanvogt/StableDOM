@@ -1,4 +1,5 @@
 from lark import Transformer, Tree, v_args
+from lark.grammar import Terminal
 from td.grammar import Compiler, Grammar
 from td.environments.environment import Environment
 from td.environments.goal_checker import GaussianImageGoalChecker
@@ -11,6 +12,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from PIL import Image
 import io
+import random
 
 grammar_spec = r"""
 s: element | style_element
@@ -36,10 +38,11 @@ style_margin_bottom: "margin-bottom" ":" margin_value
 margin_value: size unit | "auto" -> auto
 
 color: "red" -> red | "blue" -> blue | "green" -> green
-number: "0" -> zero | "1" -> one | "2" -> two | "3" -> three | "4" -> four | "5" -> five | "6" -> six | "7" -> seven | "8" -> eight | "9" -> nine | "10" -> ten | "11" -> eleven | "12" -> twelve | "13" -> thirteen | "14" -> fourteen | "15" -> fifteen | "24" -> twentyfour | "36" -> thirtysix | "50" -> fifty | "100" -> hundred
+number: SIGNED_NUMBER
 size: number
 unit: "px" -> px | "%" -> percent
 
+%import common.SIGNED_NUMBER
 %ignore /[\t\n\f\r]+/ 
 """
 
@@ -121,65 +124,9 @@ class HTMLTransformer(Transformer):
     def element(self, children):
         return children[0]
 
-    def zero(self, _):
-        return 0
-
-    def one(self, _):
-        return 1
-
-    def two(self, _):
-        return 2
-
-    def three(self, _):
-        return 3
-
-    def four(self, _):
-        return 4
-
-    def five(self, _):
-        return 5
-
-    def six(self, _):
-        return 6
-
-    def seven(self, _):
-        return 7
-
-    def eight(self, _):
-        return 8
-
-    def nine(self, _):
-        return 9
-
-    def ten(self, _):
-        return 10
-
-    def eleven(self, _):
-        return 11
-
-    def twelve(self, _):
-        return 12
-
-    def thirteen(self, _):
-        return 13
-
-    def fourteen(self, _):
-        return 14
-
-    def fifteen(self, _):
-        return 15
-
-    def twentyfour(self, _):
-        return 24
-
-    def thirtysix(self, _):
-        return 36
-
-    def fifty(self, _):
-        return 50
-
-    def hundred(self, _):
-        return 100
+    @v_args(inline=True)
+    def number(self, value):
+        return float(value)
 
     def size(self, children):
         return children[0]
@@ -197,7 +144,7 @@ class HTMLTransformer(Transformer):
         return "px"
 
     def loremipsum(self, children):
-        num_chars = children[0]
+        num_chars = int(children[0])
         phrase = "Lorem Ipsum"
         repeated_text = (phrase * (num_chars // len(phrase) + 1))[:num_chars]
         return repeated_text
@@ -271,6 +218,12 @@ class HTML(Environment):
             start="s",
             sample_start="element",
             primitives=["paragraph", "button", "style_pair"],
+            terminal_name_to_vocab={
+                "SIGNED_NUMBER": ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".")
+            },
+            terminal_to_custom_sampler={
+                Terminal("SIGNED_NUMBER"): lambda: round(random.uniform(0, 200), 2)
+            },
         )
         self._compiler = HTMLCompiler()
         self._goal_checker = GaussianImageGoalChecker(self.compiled_shape)

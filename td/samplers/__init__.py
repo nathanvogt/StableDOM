@@ -3,7 +3,8 @@ import random
 from abc import ABC, abstractmethod
 from td.grammar import Grammar
 from lark.grammar import Terminal, NonTerminal
-from lark import Tree
+from lark.lexer import TerminalDef, PatternStr
+from lark import Token, Tree
 
 from dataclasses import dataclass
 
@@ -24,6 +25,8 @@ class GrammarSampler(ABC):
 class NaiveRandomSampler(GrammarSampler):
     def sample(self, start) -> str:
         def _sample_inner(current):
+            if current.name in self.grammar._terminal_to_custom_sampler:
+                return str(self.grammar._terminal_to_custom_sampler[current.name]())
             if isinstance(current, Terminal):
                 return self.grammar._terminal_map[current.name]
 
@@ -77,6 +80,8 @@ class ConstrainedRandomSampler(GrammarSampler):
 
         def tree_to_string(tree: Tree) -> str:
             if not tree.children:
+                if tree.data in self.grammar._terminal_to_custom_sampler:
+                    return str(self.grammar._terminal_to_custom_sampler[tree.data]())
                 if isinstance(tree.data, Terminal):
                     return self.grammar._terminal_map[tree.data.name]
                 return ""
@@ -90,6 +95,15 @@ class ConstrainedRandomSampler(GrammarSampler):
                     found = current_start
 
                 if not tree.children:
+                    if tree.data.name in self.grammar._terminal_to_custom_sampler:
+                        return (
+                            str(
+                                self.grammar._terminal_to_custom_sampler[
+                                    tree.data.name
+                                ]()
+                            ),
+                            found,
+                        )
                     if isinstance(tree.data, Terminal):
                         return self.grammar._terminal_map[tree.data.name], found
                     return f"<{tree.data.name}>", found
@@ -112,7 +126,6 @@ class ConstrainedRandomSampler(GrammarSampler):
         def pick_expansion(nt, choose_fn=None):
             if return_steps:
                 tree_string, start, end = tree_to_string_node_position(tree, nt)
-
             choices = self.grammar._nonterminals[nt.data.name]
             choice_costs = self.grammar._min_primitives_choices[nt.data]
 
@@ -193,7 +206,6 @@ class ConstrainedRandomSampler(GrammarSampler):
                     if isinstance(child.data, NonTerminal)
                 ]
             )
-
         expression = tree_to_string(tree)
 
         if return_steps:

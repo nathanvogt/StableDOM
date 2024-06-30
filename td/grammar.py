@@ -23,12 +23,16 @@ class Grammar(object):
         sample_start: str = None,
         sampling_weights: Dict[str, List[float]] = None,
         primitives: List[str] = None,
+        terminal_name_to_vocab: Dict[str, tuple[str]] = None,
+        terminal_to_custom_sampler: Dict[str, callable] = None,
     ):
         self._grammar_spec = grammar_spec
         self._start_name = start
         self._sample_start_name = sample_start or start
         self._sampling_weights = sampling_weights or {}
         self._primitives = set(primitives) if primitives else None
+        self._terminal_name_to_vocab = terminal_name_to_vocab or {}
+        self._terminal_to_custom_sampler = terminal_to_custom_sampler or {}
 
         self._lark_parser = Lark(
             grammar_spec,
@@ -67,13 +71,16 @@ class Grammar(object):
         terminal_map = {}
         for t in terminals:
             names_to_symbols[t.name] = Terminal(t.name)
-            if t.name in ignore_names_set:
+            if t.name in ignore_names_set or t.name in self._terminal_name_to_vocab:
                 continue
             s = t.pattern.value
             terminal_map[t.name] = s
+        custom_vocab = []
+        for k, v in self._terminal_name_to_vocab.items():
+            custom_vocab.extend(v)
+            terminal_map[k] = v[0]  # not sure if this causes problems
 
         nonterminals = {}
-
         for rule in rules:
             nonterminals.setdefault(rule.origin.name, []).append(tuple(rule.expansion))
 
@@ -92,7 +99,7 @@ class Grammar(object):
         self._nonterminals = nonterminals
         self._names_to_symbols = names_to_symbols
 
-        self._vocabulary = sorted(list(set(terminal_map.values())))
+        self._vocabulary = sorted(list(set(terminal_map.values()).union(custom_vocab)))
 
         def _compute_min_primitives(x, path=None):
             if path is None:
@@ -189,3 +196,7 @@ class Grammar(object):
     @property
     def nonterminals(self):
         return self._nonterminals
+
+    @property
+    def custom_sampler(self):
+        return self._terminal_to_custom_sampler
