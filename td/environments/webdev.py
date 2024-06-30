@@ -1,3 +1,4 @@
+import string
 from lark import Transformer, Tree, v_args
 from lark.grammar import Terminal
 from td.grammar import Compiler, Grammar
@@ -20,7 +21,8 @@ element: compose | div | paragraph | button
 compose: "(" "Compose" " " element " " element ")"
 div: "(" "Div" " " style_element " " element ")"
 paragraph: "(" "P" " " "'" text "'" ")"
-text: number -> loremipsum
+text: TEXTT
+TEXTT: /[^']+/
 button: "(" "Button" ")" -> butt
 
 style_element: style_pair | style_junct
@@ -56,7 +58,7 @@ class HTMLTransformer(Transformer):
 
     @v_args(inline=True)
     def text(self, text):
-        return text.strip()
+        return text.value.strip()
 
     def butt(self, _):
         return "<button>Button</button>"
@@ -210,6 +212,153 @@ class HTMLCompiler(Compiler):
         self._driver.quit()
 
 
+def generate_believable_text():
+    common_words = [
+        "the",
+        "be",
+        "to",
+        "of",
+        "and",
+        "a",
+        "in",
+        "that",
+        "have",
+        "I",
+        "it",
+        "for",
+        "not",
+        "on",
+        "with",
+        "he",
+        "as",
+        "you",
+        "do",
+        "at",
+        "this",
+        "but",
+        "his",
+        "by",
+        "from",
+        "they",
+        "we",
+        "say",
+        "her",
+        "she",
+        "or",
+        "an",
+        "will",
+        "my",
+        "one",
+        "all",
+        "would",
+        "there",
+        "their",
+        "what",
+        "so",
+        "up",
+        "out",
+        "if",
+        "about",
+        "who",
+        "get",
+        "which",
+        "go",
+        "me",
+        "when",
+        "make",
+        "can",
+        "like",
+        "time",
+        "no",
+        "just",
+        "him",
+        "know",
+        "take",
+        "people",
+        "into",
+        "year",
+        "your",
+        "good",
+        "some",
+        "could",
+        "them",
+        "see",
+        "other",
+        "than",
+        "then",
+        "now",
+        "look",
+        "only",
+        "come",
+        "its",
+        "over",
+        "think",
+        "also",
+        "back",
+        "after",
+        "use",
+        "two",
+        "how",
+        "our",
+        "work",
+        "first",
+        "well",
+        "way",
+        "even",
+        "new",
+        "want",
+        "because",
+        "any",
+        "these",
+        "give",
+        "day",
+        "most",
+        "us",
+    ]
+
+    sentence_starters = [
+        "The",
+        "A",
+        "One",
+        "It",
+        "There",
+        "We",
+        "They",
+        "I",
+        "You",
+        "He",
+        "She",
+        "This",
+        "That",
+        "These",
+        "Those",
+        "Some",
+        "Many",
+        "Few",
+        "Several",
+    ]
+
+    sentence_enders = [".", ".", ".", "!", "?"]
+
+    num_sentences = random.randint(1, 5)
+    text = []
+
+    for _ in range(num_sentences):
+        sentence = [random.choice(sentence_starters)]
+        sentence_length = random.randint(3, 15)
+
+        for _ in range(sentence_length):
+            word = random.choice(common_words)
+            if random.random() < 0.1:
+                word = word.capitalize()
+            sentence.append(word)
+
+        sentence = " ".join(sentence) + random.choice(sentence_enders)
+        text.append(sentence)
+
+    return " ".join(text)
+
+
 class HTML(Environment):
     def __init__(self):
         super().__init__()
@@ -219,10 +368,104 @@ class HTML(Environment):
             sample_start="element",
             primitives=["paragraph", "button", "style_pair"],
             terminal_name_to_vocab={
-                "SIGNED_NUMBER": ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".")
+                "SIGNED_NUMBER": (
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7",
+                    "8",
+                    "9",
+                    ".",
+                ),
+                "TEXTT": (
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h",
+                    "i",
+                    "j",
+                    "k",
+                    "l",
+                    "m",
+                    "n",
+                    "o",
+                    "p",
+                    "q",
+                    "r",
+                    "s",
+                    "t",
+                    "u",
+                    "v",
+                    "w",
+                    "x",
+                    "y",
+                    "z",
+                    "A",
+                    "B",
+                    "C",
+                    "D",
+                    "E",
+                    "F",
+                    "G",
+                    "H",
+                    "I",
+                    "J",
+                    "K",
+                    "L",
+                    "M",
+                    "N",
+                    "O",
+                    "P",
+                    "Q",
+                    "R",
+                    "S",
+                    "T",
+                    "U",
+                    "V",
+                    "W",
+                    "X",
+                    "Y",
+                    "Z",
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7",
+                    "8",
+                    "9",
+                    " ",
+                    ".",
+                    ",",
+                    "!",
+                    "?",
+                    "-",
+                    "_",
+                    "(",
+                    ")",
+                    "[",
+                    "]",
+                    "{",
+                    "}",
+                    ":",
+                    ";",
+                    "/",
+                    "\\",
+                ),
             },
             terminal_to_custom_sampler={
-                Terminal("SIGNED_NUMBER"): lambda: round(random.uniform(0, 200), 2)
+                Terminal("SIGNED_NUMBER"): lambda: round(random.uniform(0, 200), 2),
+                Terminal("TEXTT"): generate_believable_text,
             },
         )
         self._compiler = HTMLCompiler()

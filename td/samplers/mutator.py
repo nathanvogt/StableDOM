@@ -2,7 +2,7 @@ from typing import Sequence, Tuple, List
 
 from td.grammar import Grammar
 from td.samplers import ConstrainedRandomSampler
-from lark import Tree, Visitor
+from lark import Token, Tree, Visitor
 import random
 from dataclasses import dataclass
 
@@ -60,18 +60,28 @@ class CountPrimitives(Visitor):
         self._primitives = primitives
 
     def __default__(self, tree):
-        self_count = tree.data in self._primitives
-        try:
-            idk = tree
-            count = sum(child.primitive_count for child in tree.children) + self_count
-        except:
-            print(f"\n\nError in tree. Children: {idk.children}\n\n")
-        tree.primitive_count = count
+        self_count = tree.data in self._primitives if isinstance(tree, Tree) else 0
+        count = self_count
+        for child in tree.children if isinstance(tree, Tree) else [tree]:
+            if isinstance(child, Tree):
+                count += child.primitive_count
+            elif isinstance(child, Token):
+                if child.type == "SIGNED_NUMBER" and "number" in self._primitives:
+                    count += 1
+                elif child.type in self._primitives:
+                    count += 1
+        if isinstance(tree, Tree):
+            tree.primitive_count = count
+        return count
 
 
 def nodes_with_max_primitives(tree: Tree, primitive_set, max_primitives):
     CountPrimitives(primitive_set).visit(tree)
-    return [x for x in tree.iter_subtrees() if x.primitive_count <= max_primitives]
+    return [
+        x
+        for x in tree.iter_subtrees()
+        if hasattr(x, "primitive_count") and x.primitive_count <= max_primitives
+    ]
 
 
 def random_mutation(
@@ -89,11 +99,21 @@ def random_mutation(
         tree, grammar.primitives, selection_max_primitives
     )
 
-    candidate_primitive_counts = [x.primitive_count for x in candidates]
+    candidate_primitive_counts = [
+        getattr(x, "primitive_count", 1) if isinstance(x, Tree) else 1
+        for x in candidates
+    ]
     unique_primitive_counts = list(set(candidate_primitive_counts))
     candidate_primitive_count = random.choice(unique_primitive_counts)
     candidates_with_count = [
-        x for x in candidates if x.primitive_count == candidate_primitive_count
+        x
+        for x in candidates
+        if (
+            isinstance(x, Tree)
+            and hasattr(x, "primitive_count")
+            and x.primitive_count == candidate_primitive_count
+        )
+        or (isinstance(x, Token) and candidate_primitive_count == 1)
     ]
     candidates = candidates_with_count
 
@@ -103,10 +123,10 @@ def random_mutation(
 
         candidate = random.choice(candidates)
 
-        if not hasattr(candidate, "parent"):
-            # We have the root, sample a new expression.
-            start = 0
-            end = len(expression)
+        if isinstance(candidate, Token) or not hasattr(candidate, "parent"):
+            # We have a token or the root, sample a new expression.
+            start = candidate.start_pos if isinstance(candidate, Token) else 0
+            end = candidate.end_pos if isinstance(candidate, Token) else len(expression)
             sub_expression = expression[start:end]
             start_symbol = grammar.sample_start_symbol
         else:
@@ -209,6 +229,8 @@ def one_step_path_mutations(
         return tree
 
     def node_eq(nodeA, nodeB):
+        if isinstance(nodeA, Token) and isinstance(nodeB, Token):
+            return nodeA.value == nodeB.value
         if len(nodeA.children) != len(nodeB.children):
             return False
 
@@ -218,7 +240,36 @@ def one_step_path_mutations(
         return nodeA.data == nodeB.data
 
     def treediff(treeA, treeB, expressionA, expressionB):
-        if node_eq(treeA, treeB):
+        if isinstance(treeA, Token) and isinstance(treeB, Token):
+            if treeA.value == treeB.value:
+                return []
+            else:
+                return [Mutation(treeA.start_pos, treeA.end_pos, treeB.value)]
+
+        if isinstance(treeA, Token) or isinstance(treeB, Token):
+            return [
+                Mutation(
+                    start=(
+                        treeA.start_pos
+                        if isinstance(treeA, Token)
+                        else treeA.meta.start_pos
+                    ),
+                    end=(
+                        treeA.end_pos
+                        if isinstance(treeA, Token)
+                        else treeA.meta.end_pos
+                    ),
+                    replacement=(
+                        expressionB[treeB.start_pos : treeB.end_pos]
+                        if isinstance(treeB, Token)
+                        else expressionB[treeB.meta.start_pos : treeB.meta.end_pos]
+                    ),
+                )
+            ]
+
+        if (isinstance(treeA, Tree) and isinstance(treeB, Tree)) and node_eq(
+            treeA, treeB
+        ):
             # This node is the same, recurse on children.
             rv = []
             for childA, childB in zip(treeA.children, treeB.children):
@@ -226,11 +277,12 @@ def one_step_path_mutations(
             return rv
         else:
             source_passes = (
-                small_sources and treeA.primitive_count <= max_primitives
+                small_sources and getattr(treeA, "primitive_count", 1) <= max_primitives
             ) or (not small_sources)
             target_passes = (
-                treeB.primitive_count <= max_primitives and not truncate_nonzero
-            ) or (truncate_nonzero and treeB.primitive_count <= 0)
+                getattr(treeB, "primitive_count", 1) <= max_primitives
+                and not truncate_nonzero
+            ) or (truncate_nonzero and getattr(treeB, "primitive_count", 1) <= 0)
 
             if source_passes and target_passes:
                 return [
