@@ -56,6 +56,7 @@ class Grammar(object):
                 lexer="contextual",
             )
             for k in self._nonterminals.keys()
+            if hasattr(k, "value")
         }
 
     def _initialize_sampler_constants(self):

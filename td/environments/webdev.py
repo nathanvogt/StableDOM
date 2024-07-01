@@ -23,7 +23,7 @@ div: "(" "Div" " " style_element " " element ")"
 paragraph: "(" "P" " " "'" text "'" ")"
 text: TEXTT
 TEXTT: /[^']+/
-button: "(" "Button" ")" -> butt
+button: "(" "Button" " " "'" text "'" ")"
 
 style_element: style_pair | style_junct
 style_junct: "(" "Junct" " " style_element " " style_element ")"
@@ -60,8 +60,9 @@ class HTMLTransformer(Transformer):
     def text(self, text):
         return text.value.strip()
 
-    def butt(self, _):
-        return "<button>Button</button>"
+    def button(self, children):
+        text = children[0]
+        return f"<button>{text}</button>"
 
     def style_border(self, children):
         (size, unit, color) = children
@@ -340,12 +341,12 @@ def generate_believable_text():
 
     sentence_enders = [".", ".", ".", "!", "?"]
 
-    num_sentences = random.randint(1, 5)
+    num_sentences = random.randint(1, 3)
     text = []
 
     for _ in range(num_sentences):
         sentence = [random.choice(sentence_starters)]
-        sentence_length = random.randint(3, 15)
+        sentence_length = random.randint(1, 8)
 
         for _ in range(sentence_length):
             word = random.choice(common_words)
