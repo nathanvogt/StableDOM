@@ -85,7 +85,7 @@ class ConstrainedRandomSampler(GrammarSampler):
                 if isinstance(tree.data, Terminal):
                     return self.grammar._terminal_map[tree.data.name]
                 return ""
-            return "".join(tree_to_string(child) for child in tree.children)
+            return " ".join(tree_to_string(child) for child in tree.children)
 
         def tree_to_string_node_position(tree: Tree, search_node: Tree):
             def _f(tree: Tree, search_node: Tree, current_start=0) -> tuple[str, int]:
