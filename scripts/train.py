@@ -78,6 +78,8 @@ class TreeDiffusionDataset(IterableDataset):
         target_observation,
         current_observation,
         random_mix,
+        sample_min_primitives=None,
+        sample_max_primitives=None,
     ):
         self._env = None
         self._env_name = env_name
@@ -86,6 +88,8 @@ class TreeDiffusionDataset(IterableDataset):
         self._max_steps = max_steps
         self._max_sequence_length = max_sequence_length
         self._min_primitives = min_primitives
+        self._sample_min_primitives = sample_min_primitives or min_primitives
+        self._sample_max_primitives = sample_max_primitives or max_primitives
         self._max_primitives = max_primitives
         self._forward_mode = forward_mode
         self._target_observation = target_observation
@@ -98,8 +102,8 @@ class TreeDiffusionDataset(IterableDataset):
             def sample_fn():
                 return self._sampler.sample(
                     self._env.grammar.sample_start_symbol,
-                    min_primitives=self._min_primitives,
-                    max_primitives=self._max_primitives,
+                    min_primitives=self._sample_min_primitives,
+                    max_primitives=self._sample_max_primitives,
                 )
 
             target_expressions = []
