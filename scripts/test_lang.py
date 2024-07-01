@@ -12,21 +12,23 @@ def main():
     env = HTMLCSS()
     grammar = env.grammar
     transformer = HTMLCSSTransformer()
+    sampler = ConstrainedRandomSampler(grammar)
     program = """
 <html>
 <head>
 </head>
 <body>
-<div>
-<p>hello world</p>
-</div>
+<div style="hello"></div>
+<div style="hello"></div>
 </body>
 </html>
 """
-    parsed = grammar.parse(program)
-    # print(parsed.pretty())
-    transformed = transformer.transform(parsed)
-    print(transformed)
+
+    expr = sampler.sample(
+        grammar.sample_start_symbol, min_primitives=1, max_primitives=20
+    )
+    print("\n")
+    print(expr)
 
 
 if __name__ == "__main__":

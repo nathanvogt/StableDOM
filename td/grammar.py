@@ -47,16 +47,15 @@ class Grammar(object):
 
         self._initialize_sampler_constants()
         self._lark_parser_for_start = {
-            k.value: Lark(
+            (k.value if hasattr(k, "value") else k): Lark(
                 grammar_spec,
-                start=k.value,
+                start=(k.value if hasattr(k, "value") else k),
                 propagate_positions=True,
                 parser="lalr",
                 maybe_placeholders=False,
                 lexer="contextual",
             )
             for k in self._nonterminals.keys()
-            if hasattr(k, "value")
         }
 
     def _initialize_sampler_constants(self):
@@ -84,7 +83,6 @@ class Grammar(object):
         nonterminals = {}
         for rule in rules:
             nonterminals.setdefault(rule.origin.name, []).append(tuple(rule.expansion))
-
         allowed_rules = {*terminal_map, *nonterminals}
         while dict(nonterminals) != (
             nonterminals := {
@@ -94,7 +92,6 @@ class Grammar(object):
             }
         ):
             allowed_rules = {*terminal_map, *nonterminals}
-
         self._terminal_map = terminal_map
         self._rev_terminal_map = {v: k for k, v in terminal_map.items()}
         self._nonterminals = nonterminals

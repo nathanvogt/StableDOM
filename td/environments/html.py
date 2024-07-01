@@ -21,36 +21,47 @@ html_document: "<html>" head body "</html>"
 head: "<head>" "</head>"
 body: "<body>" content "</body>"
 content: element*
-element: div | span | p | a | ul | li | h1 | h2 | h3 | h4 | h5 | h6 | table | form | input | button
+element: div #| span | p | a | ul | li | h1 | h2 | h3 | h4 | h5 | h6 | table | form | input | button
 
 # elements
-div: "<div>" (content | TEXT)? "</div>"
-span: "<span>" (content | TEXT)? "</span>"
-p: "<p>" (content | TEXT)? "</p>"
-a: "<a>" (content | TEXT)? "</a>"
-ul: "<ul>" (li)* "</ul>"
-li: "<li>" (content | TEXT)? "</li>"
-h1: "<h1>" (content | TEXT)? "</h1>"
-h2: "<h2>" (content | TEXT)? "</h2>"
-h3: "<h3>" (content | TEXT)? "</h3>"
-h4: "<h4>" (content | TEXT)? "</h4>"
-h5: "<h5>" (content | TEXT)? "</h5>"
-h6: "<h6>" (content | TEXT)? "</h6>"
-table: "<table>" (tr)* "</table>"
-tr: "<tr>" (td)* "</tr>"
-td: "<td>" (content | TEXT)? "</td>"
-form: "<form>" (content | TEXT)? "</form>"
-input: "<input>" (content | TEXT)? "</input>"
-button: "<button>" (content | TEXT)? "</button>"
+div: "<div" "style=" style ">" (content | TEXT)? "</div>"
+# span: "<span>" (content | TEXT)? "</span>"
+# p: "<p>" (content | TEXT)? "</p>"
+# a: "<a>" (content | TEXT)? "</a>"
+# ul: "<ul>" (li)* "</ul>"
+# li: "<li>" (content | TEXT)? "</li>"
+# h1: "<h1>" (content | TEXT)? "</h1>"
+# h2: "<h2>" (content | TEXT)? "</h2>"
+# h3: "<h3>" (content | TEXT)? "</h3>"
+# h4: "<h4>" (content | TEXT)? "</h4>"
+# h5: "<h5>" (content | TEXT)? "</h5>"
+# h6: "<h6>" (content | TEXT)? "</h6>"
+# table: "<table>" (tr)* "</table>"
+# tr: "<tr>" (td)* "</tr>"
+# td: "<td>" (content | TEXT)? "</td>"
+# form: "<form>" (content | TEXT)? "</form>"
+# input: "<input>" (content | TEXT)? "</input>"
+# button: "<button>" (content | TEXT)? "</button>"
 
 # css
-style: "idk"
+style: "\"" css_rule* "\""
+
+css_rule: display_rule | border_radius_rule | border_rule | background_rule
 
 display_rule: "display:" display_value ";"
-display_value: "block" | "inline" | "inline-block"
+display_value: "block" | "inline" | "inline-block" | "none" | "flex" | "grid"
 
+border_radius_rule: "border-radius:" number unit ";"
+border_rule: "border:" number unit "solid" COLOR ";"
+
+background_rule: "background:" COLOR ";"
+
+number: SIGNED_NUMBER
+unit: "px" | "em" | "rem" | "vw" | "vh" | "vmin" | "vmax" | "%" | "fr"
 TEXT: /[^<>]+/
+COLOR: /\#[0-9a-fA-F]{6}/
 
+%import common.SIGNED_NUMBER
 %import common.WS
 %ignore WS
 """
@@ -281,6 +292,12 @@ class HTMLCSS(Environment):
                 "COLOR": string.hexdigits + "#",
                 "TEXT": string.printable,
                 "ESCAPED_STRING": string.printable,
+            },
+            terminal_to_custom_sampler={
+                Terminal("TEXT"): generate_believable_text,
+                Terminal("COLOR"): lambda: "#"
+                + "".join(random.choice(string.hexdigits) for _ in range(6)),
+                Terminal("SIGNED_NUMBER"): lambda: round(random.uniform(0, 10), 2),
             },
         )
         self._compiler = HTMLCSSCompiler()
