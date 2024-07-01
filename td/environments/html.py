@@ -48,16 +48,16 @@ style: "\"" css_rule* "\""
 
 css_rule: display_rule | border_radius_rule | border_rule | background_rule
 
-display_rule: "display:" display_value ";"
-display_value: "block" | "inline" | "inline-block" | "none" | "flex" | "grid"
+display_rule: "display:" DISPLAY_VALUE ";"
+DISPLAY_VALUE: "block" | "inline" | "inline-block" | "none" | "flex" | "grid"
 
-border_radius_rule: "border-radius:" number unit ";"
-border_rule: "border:" number unit "solid" COLOR ";"
+border_radius_rule: "border-radius:" number UNIT ";"
+border_rule: "border:" number UNIT "solid" COLOR ";"
 
 background_rule: "background:" COLOR ";"
 
 number: SIGNED_NUMBER
-unit: "px" | "em" | "rem" | "vw" | "vh" | "vmin" | "vmax" | "%" | "fr"
+UNIT: "px" | "em" | "rem" | "vw" | "vh" | "vmin" | "vmax" | "%" | "fr"
 TEXT: /[^<>]+/
 COLOR: /\#[0-9a-fA-F]{6}/
 
@@ -71,7 +71,65 @@ _SCREEN_HEIGHT = 982 // 2
 
 
 class HTMLCSSTransformer(Transformer):
-    pass
+    def start(self, items):
+        return "".join(items)
+
+    def html_document(self, items):
+        return "".join(items)
+
+    def head(self, items):
+        return "".join(items)
+
+    def body(self, items):
+        return "".join(items)
+
+    def content(self, items):
+        return "".join(items)
+
+    def element(self, items):
+        return "".join(items)
+
+    def div(self, items):
+        style = items[0]
+        content = items[1] if len(items) > 1 else ""
+        return f'<div style="{style}">{content}</div>'
+
+    def style(self, items):
+        return "".join(items)
+
+    def css_rule(self, items):
+        return "".join(items)
+
+    def display_rule(self, items):
+        return f"display:{items[0]};"
+
+    def DISPLAY_VALUE(self, token):
+        return token.value
+
+    def border_radius_rule(self, items):
+        return f"border-radius:{items[0]}{items[1]};"
+
+    def border_rule(self, items):
+        return f"border:{items[0]}{items[1]} solid {items[2]};"
+
+    def background_rule(self, items):
+        return f"background:{items[0]};"
+
+    def number(self, chilren):
+        return chilren[0]
+
+    def unit(self, children):
+        print(children)
+        return children[0]
+
+    def SIGNED_NUMBER(self, token):
+        return token.value
+
+    def COLOR(self, token):
+        return token.value
+
+    def TEXT(self, token):
+        return token.value
 
 
 class HTMLCSSCompiler(Compiler):
@@ -91,7 +149,8 @@ class HTMLCSSCompiler(Compiler):
         self._driver.get("about:blank")
 
     def compile(self, expression: Tree):
-        content = self._expression_to_html.transform(expression).replace("'", "\\'")
+        content = self._expression_to_html.transform(expression)
+        print(f"content: {content}")
         self._driver.execute_script(f"document.body.innerHTML = '{content}'")
         png = self._driver.get_screenshot_as_png()
 
@@ -317,7 +376,7 @@ class HTMLCSS(Environment):
 
     @classmethod
     def name(cls):
-        return "html"
+        return "htmlcss"
 
     def goal_reached(self, compiledA, compiledB):
         return self._goal_checker.goal_reached(compiledA, compiledB)

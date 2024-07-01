@@ -40,7 +40,7 @@ def print_some_samples():
 def print_some_batches(batch_size):
     dataset = TreeDiffusionDataset(
         batch_size=batch_size,
-        env_name="html",
+        env_name="htmlcss",
         min_steps=1,
         max_steps=4,
         max_sequence_length=1024,
