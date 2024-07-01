@@ -18,8 +18,10 @@ def main():
 <head>
 </head>
 <body>
-<div style="hello"></div>
-<div style="hello"></div>
+<div style=""></div>
+<div style="border-radius: 1px; display: flex;"></div>
+<div style=""></div>
+<div style=""></div>
 </body>
 </html>
 """
@@ -27,8 +29,9 @@ def main():
     expr = sampler.sample(
         grammar.sample_start_symbol, min_primitives=1, max_primitives=20
     )
-    print("\n")
-    print(expr)
+    # print(expr)
+    # mutation = random_mutation(program, grammar, sampler)
+    # print(mutation)
 
 
 if __name__ == "__main__":

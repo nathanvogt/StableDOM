@@ -128,9 +128,6 @@ class ConstrainedRandomSampler(GrammarSampler):
                 tree_string, start, end = tree_to_string_node_position(tree, nt)
             choices = self.grammar._nonterminals[nt.data.name]
             choice_costs = self.grammar._min_primitives_choices[nt.data]
-            print(f"expanding: {nt.data.name}")
-            print(f"choices: {choices}")
-            print(f"choice_costs: {choice_costs}")
 
             if choose_fn is None:
                 selected_choices = choices

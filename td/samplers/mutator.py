@@ -84,6 +84,29 @@ def nodes_with_max_primitives(tree: Tree, primitive_set, max_primitives):
     ]
 
 
+import re
+
+
+def is_star_node(node):
+    return isinstance(node.data, str) and re.match(r"^__\w+_star_\d+$", node.data)
+
+
+def find_nth_child(tree, n):
+    if n < 0:
+        return None
+    if not tree.children:
+        return None
+
+    current_tree = tree
+    while True:
+        if len(current_tree.children) > n:
+            return current_tree.children[n]
+        elif len(current_tree.children) == 1 and is_star_node(current_tree.children[0]):
+            current_tree = current_tree.children[0]
+        else:
+            return None
+
+
 def random_mutation(
     expression: str,
     grammar: Grammar,
@@ -99,56 +122,60 @@ def random_mutation(
         tree, grammar.primitives, selection_max_primitives
     )
 
-    candidate_primitive_counts = [
-        getattr(x, "primitive_count", 1) if isinstance(x, Tree) else 1
-        for x in candidates
-    ]
+    # for x in candidates:
+    #     print(x.pretty())
+
+    candidate_primitive_counts = [x.primitive_count for x in candidates]
     unique_primitive_counts = list(set(candidate_primitive_counts))
     candidate_primitive_count = random.choice(unique_primitive_counts)
     candidates_with_count = [
-        x
-        for x in candidates
-        if (
-            isinstance(x, Tree)
-            and hasattr(x, "primitive_count")
-            and x.primitive_count == candidate_primitive_count
-        )
-        or (isinstance(x, Token) and candidate_primitive_count == 1)
+        x for x in candidates if x.primitive_count == candidate_primitive_count
     ]
-    candidates = candidates_with_count
+    # candidates = candidates_with_count
 
     while True:
         if not candidates:
             return None
 
-        candidate = random.choice(candidates)
+        # candidate = random.choice(candidates)
+        candidate = candidates[15]
 
-        if isinstance(candidate, Token) or not hasattr(candidate, "parent"):
-            # We have a token or the root, sample a new expression.
-            start = candidate.start_pos if isinstance(candidate, Token) else 0
-            end = candidate.end_pos if isinstance(candidate, Token) else len(expression)
+        if not hasattr(candidate, "parent"):
+            # We have the root, sample a new expression.
+            start = 0
+            end = len(expression)
             sub_expression = expression[start:end]
-            start_symbol = grammar.sample_start_symbol
+            start_symbol = grammar.start_symbol
         else:
-            try:
-                parent = candidate.parent
-                start = candidate.meta.start_pos
-                end = candidate.meta.end_pos
+            parent = candidate.parent
+            start = candidate.meta.start_pos
+            end = candidate.meta.end_pos
 
-                sub_expression = expression[start:end]
-                self_child_index = parent.children.index(candidate)
+            sub_expression = expression[start:end]
+            print(f"candidate: {candidate.pretty()}")
+            print("\n")
+            print(f"parent: {parent.pretty()}")
+            self_child_index = parent.children.index(candidate)
+            print(f"child index: {self_child_index}")
+            print("\n")
 
-                matched = grammar.tree_matcher.match_tree(parent, parent.data)
-                rule_name = matched.children[self_child_index].data
-                options = grammar.nonterminals[rule_name]
+            matched = grammar.tree_matcher.match_tree(parent, parent.data)
+            print(f"matched: {matched.pretty()}")
+            matched_child = find_nth_child(matched, self_child_index)
+            print(f"matched_child: {matched_child.pretty()}")
+            if matched_child is None:
+                raise ValueError("Could not find matched child")
+                # candidates.remove(candidate)
+                # continue
+            rule_name = matched_child.data
+            print(f"rule_name: {rule_name}")
+            options = grammar.nonterminals[rule_name]
 
-                if len(options) <= 1:
-                    candidates.remove(candidate)
-                    continue
+            if len(options) <= 1:
+                candidates.remove(candidate)
+                continue
 
-                start_symbol = grammar.names_to_symbols[rule_name]
-            except:
-                print(f"error: {self_child_index}, {matched.children}")
+            start_symbol = grammar.names_to_symbols[rule_name]
 
         attempts = 0
         while True:
