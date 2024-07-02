@@ -43,6 +43,7 @@ class OneStepEvaluator(object):
         self._evaluation_batch_size = evaluation_batch_size
         self._target_observation = target_observation
         self._non_empty = non_empty
+        self._device = device
 
         random.seed(seed)
 
@@ -74,16 +75,22 @@ class OneStepEvaluator(object):
             .permute(0, 3, 1, 2)
             .to(device)
         )
-        self._mutations = [
-            random_mutation(
-                e,
-                env.grammar,
-                sampler,
-                selection_max_primitives,
-                replacement_max_primitives,
-            )
-            for e in self._target_expressions
-        ]
+
+        def get_random_mutation(expr: str):
+            max_steps = 50
+            for _ in range(max_steps):
+                m = random_mutation(
+                    expr,
+                    env.grammar,
+                    sampler,
+                    selection_max_primitives,
+                    replacement_max_primitives,
+                )
+                if m is not None:
+                    return m
+            raise ValueError("Could not find a valid mutation.")
+
+        self._mutations = [get_random_mutation(e) for e in self._target_expressions]
         self._current_expressions = [
             m.apply(e) for e, m in zip(self._target_expressions, self._mutations)
         ]

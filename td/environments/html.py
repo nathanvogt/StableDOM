@@ -18,14 +18,12 @@ import random
 grammar_spec = r"""
 start: content | style
 content: element*
-element: div | span | p | ul | li | h1 | h2 | h3 | h4 | h5 | h6 | form | input | button
+element: div | span | p | h1 | h2 | h3 | h4 | h5 | h6 | form | input | button
 
 # elements
 div: "<div" "style=" style ">" (content | TXT)? "</div>"
 span: "<span" "style=" style ">" (content | TXT)? "</span>"
 p: "<p" "style=" style ">" (content | TXT)? "</p>"
-ul: "<ul" "style=" style ">" li* "</ul>"
-li: "<li" "style=" style ">" (content | TXT)? "</li>"
 h1: "<h1" "style=" style ">" (content | TXT)? "</h1>"
 h2: "<h2" "style=" style ">" (content | TXT)? "</h2>"
 h3: "<h3" "style=" style ">" (content | TXT)? "</h3>"
@@ -107,22 +105,6 @@ class HTMLCSSTransformer(Transformer):
         style = items[0]
         content = items[1] if len(items) > 1 else ""
         return f'<p style="{style}">{content}</p>'
-
-    def a(self, items):
-        href = items[0]
-        style = items[1]
-        content = items[2] if len(items) > 2 else ""
-        return f'<a href={href} style="{style}">{content}</a>'
-
-    def ul(self, items):
-        style = items[0]
-        content = "".join(items[1:])
-        return f'<ul style="{style}">{content}</ul>'
-
-    def li(self, items):
-        style = items[0]
-        content = items[1] if len(items) > 1 else ""
-        return f'<li style="{style}">{content}</li>'
 
     def h1(self, items):
         style = items[0]
@@ -582,7 +564,7 @@ class HTMLCSS(Environment):
         self._grammar = Grammar(
             grammar_spec,
             start="start",
-            sample_start="content",
+            sample_start="element",
             primitives=["element", "css_rule"],
             terminal_name_to_vocab={
                 "WORD": string.ascii_letters + "-",

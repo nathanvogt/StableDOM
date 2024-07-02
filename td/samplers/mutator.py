@@ -60,16 +60,13 @@ class CountPrimitives(Visitor):
         self._primitives = primitives
 
     def __default__(self, tree):
-        self_count = tree.data in self._primitives if isinstance(tree, Tree) else 0
+        self_count = int(tree.data in self._primitives) if isinstance(tree, Tree) else 0
         count = self_count
         for child in tree.children if isinstance(tree, Tree) else [tree]:
             if isinstance(child, Tree):
                 count += child.primitive_count
-            elif isinstance(child, Token):
-                if child.type == "SIGNED_NUMBER" and "number" in self._primitives:
-                    count += 1
-                elif child.type in self._primitives:
-                    count += 1
+            elif isinstance(child, Token) and child.type in self._primitives:
+                count += 1
         if isinstance(tree, Tree):
             tree.primitive_count = count
         return count
@@ -131,13 +128,20 @@ def random_mutation(
 
     while True:
         if not candidates:
+            # print(f"No mutation for {expression=}\n")
+            # print(f"{selection_max_primitives=}")
+            # print(f"candidates pre: {candidates_pre}")
+            # print(f"{candidate_primitive_counts=}")
+            # print(f"{unique_primitive_counts=}")
+            # print(f"{candidate_primitive_count=}")
+            # print(f"{original_candidates=}")
             return None
 
         candidate = random.choice(candidates)
 
         if (
             not hasattr(candidate, "parent")
-            or grammar.names_to_symbols[candidate.parent.data] == grammar.start_symbol
+            # or grammar.names_to_symbols[candidate.parent.data] == grammar.start_symbol
         ):
             # We have the root, sample a new expression.
             start = 0
@@ -153,7 +157,7 @@ def random_mutation(
             self_child_index = parent.children.index(candidate)
             matched = grammar.tree_matcher.match_tree(parent, parent.data)
             matched_child = matched.children[
-                min(self_child_index, len(matched.children) - 1)
+                0 if self_child_index >= len(matched.children) else self_child_index
             ]
             if matched_child is None:
                 raise ValueError("Could not find matched child")
@@ -163,6 +167,10 @@ def random_mutation(
             options = grammar.nonterminals[rule_name]
 
             if len(options) <= 1:
+                if len(candidates) <= 1:
+                    pass
+                    # print(f"one option for last {candidate=}")
+                    # print(f"{options=}")
                 candidates.remove(candidate)
                 continue
 
@@ -321,11 +329,14 @@ def one_step_path_mutations(
                     matched = grammar.tree_matcher.match_tree(parent, parent.data)
                     # matched_child = find_nth_child(matched, self_child_index)
                     matched_child = matched.children[
-                        min(self_child_index, len(matched.children) - 1)
+                        (
+                            0
+                            if self_child_index >= len(matched.children)
+                            else self_child_index
+                        )
                     ]
                     rule_name = matched_child.data
                     start_symbol = grammar.names_to_symbols[rule_name]
-
                 b = expressionB[treeB.meta.start_pos : treeB.meta.end_pos]
                 if treeB.primitive_count <= max_primitives:
                     return [
@@ -351,7 +362,6 @@ def one_step_path_mutations(
                 )
 
                 new_expression = apply_all_mutations(new_expression, tightening_diffs)
-
                 return [
                     Mutation(
                         start=treeA.meta.start_pos,
