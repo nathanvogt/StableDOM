@@ -23,7 +23,7 @@ from td.samplers.mutator import (
 
 FLAGS = flags.FLAGS
 flags.DEFINE_integer("batch_size", 256, "Batch size")
-flags.DEFINE_integer("print_every", 100, "Print every")
+flags.DEFINE_integer("print_every", 1000, "Print every")
 flags.DEFINE_integer("test_every", 10000, "Test every")
 flags.DEFINE_integer("training_steps", -1, "Training steps")
 flags.DEFINE_string("checkpoint_dir", "checkpoints", "Checkpoint directory")
@@ -82,6 +82,7 @@ class TreeDiffusionDataset(IterableDataset):
         sample_max_primitives=None,  # for original sample (before mutating)
         selection_max_primitives=None,  # max size selected for mutation
         replacement_max_primitives=None,  # max size of mutation replacement
+        path_max_primitives=None,  # max mutations each path step
     ):
         self._env = None
         self._env_name = env_name
@@ -94,6 +95,7 @@ class TreeDiffusionDataset(IterableDataset):
         self._sample_max_primitives = sample_max_primitives or max_primitives
         self._selection_max_primitives = selection_max_primitives or max_primitives
         self._replacement_max_primitives = replacement_max_primitives or max_primitives
+        self._path_max_primitives = path_max_primitives or max_primitives
         self._max_primitives = max_primitives
         self._forward_mode = forward_mode
         self._target_observation = target_observation
@@ -131,6 +133,7 @@ class TreeDiffusionDataset(IterableDataset):
                         max_primitives=self._max_primitives,
                         selection_max_primitives=self._selection_max_primitives,
                         replacement_max_primitives=self._replacement_max_primitives,
+                        path_max_primitives=self._path_max_primitives,
                         p_random=self._random_mix,
                     )
                     for expression, step in zip(target_expressions, steps)
@@ -176,20 +179,20 @@ class TreeDiffusionDataset(IterableDataset):
                 for expression, _ in training_examples
             ]
             # print target examples and trianing examples
-            for i in range(len(target_expressions)):
-                print("Target:  ", target_expressions[i])
-                print("\n")
-                print("Training:", training_examples[i][0])
-                print("\n\n")
+            # for i in range(len(target_expressions)):
+            # print("Target:  ", target_expressions[i])
+            # print("\n")
+            # print("Training:", training_examples[i][0])
+            # print("\n\n")
         except Exception as e:
-            print("Restarting")
+            # print("Restarting")
             logging.warning(f"Failed to compile: {e}")
-            logging.exception(e)
+            # logging.exception(e)
             return self._produce_batch()
         tokenized = []
         context_tokens_mask = []
         for mutated_expression, reverse_mutation in training_examples:
-            print(f"Mutation: {reverse_mutation}")
+            # print(f"Mutation: {reverse_mutation}")
             context_tokens, positions = self._tokenizer._tokenize_one(
                 mutated_expression, translate_positions=True
             )

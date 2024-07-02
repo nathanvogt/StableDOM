@@ -324,7 +324,11 @@ def one_step_path_mutations(
         #     print("they are the same but different children")
         #     raise ValueError("Trees are not equal")
         else:
-            # print("else")
+            # if tree A meta hasno start pos, print treeA
+            # if not hasattr(treeA.meta, "start_pos"):
+            #     print("no start pos")
+            #     print(treeA.pretty())
+            #     print(treeA.meta)
             source_passes = (
                 small_sources and getattr(treeA, "primitive_count", 1) <= max_primitives
             ) or (not small_sources)
@@ -395,11 +399,6 @@ def one_step_path_mutations(
                 # print(f"{tightening_diffs=}")
 
                 new_expression = apply_all_mutations(new_expression, tightening_diffs)
-
-                # if tree A meta hasno start pos, print treeA
-                if not hasattr(treeA.meta, "start_pos"):
-                    print(treeA.pretty())
-                    print(treeA.meta)
 
                 return [
                     Mutation(

@@ -42,18 +42,19 @@ def print_some_batches(batch_size):
         batch_size=batch_size,
         env_name="htmlcss",
         min_steps=1,
-        max_steps=1,
-        max_sequence_length=1024,
+        max_steps=5,
+        max_sequence_length=2048,
         min_primitives=1,
-        max_primitives=1,
-        sample_min_primitives=2,
-        sample_max_primitives=16,
-        selection_max_primitives=4,
-        replacement_max_primitives=4,
+        max_primitives=8,
+        sample_min_primitives=1,
+        sample_max_primitives=32,
+        selection_max_primitives=16,
+        replacement_max_primitives=16,
+        path_max_primitives=8,
         forward_mode="path",
         target_observation=False,
         current_observation=False,
-        random_mix=0.0,
+        random_mix=0.2,
     )
     start_time = time.time()
     batch = next(iter(dataset))
@@ -132,7 +133,7 @@ def compare_env_loading_times(num_batches=10, num_runs=5):
 
 def main():
     # print_some_samples()
-    print_some_batches(batch_size=4)
+    print_some_batches(batch_size=8)
 
 
 if __name__ == "__main__":
