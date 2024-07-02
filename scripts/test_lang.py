@@ -1,5 +1,5 @@
 from lark import Token
-from td.environments.html import HTMLCSS, HTMLCSSTransformer
+from td.environments.htmlcss import HTMLCSS, HTMLCSSTransformer
 from td.learning.tokenizer import Tokenizer
 from td.samplers import ConstrainedRandomSampler
 from td.samplers.mutator import random_mutation

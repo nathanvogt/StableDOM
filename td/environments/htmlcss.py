@@ -41,7 +41,7 @@ button: "<button" "style=" style ">" (content | TXT)? "</button>"
 # css
 style: "\"" css_rule* "\""
 
-css_rule: width_rule | height_rule | display_rule | border_radius_rule | border_rule | background_rule | flex_direction_rule | justify_content_rule | flex_wrap_rule | align_items_rule | align_content_rule
+css_rule: width_rule | height_rule | display_rule | border_radius_rule | border_rule | background_rule | flex_direction_rule | justify_content_rule | flex_wrap_rule | align_items_rule | align_content_rule | padding_top_rule | padding_bottom_rule | padding_left_rule | padding_right_rule | margin_top_rule | margin_bottom_rule | margin_left_rule | margin_right_rule | color_rule
 
 width_rule: "width:" number unit ";"
 height_rule: "height:" number unit ";"
@@ -60,17 +60,28 @@ align_items_value: "stretch" -> stretch | "flex-start" -> flex_start | "flex-end
 align_content_rule: "align-content:" align_content_value ";"
 align_content_value: "stretch" -> stretch | "flex-start" -> flex_start | "flex-end" -> flex_end | "center" -> center | "space-between" -> space_between | "space-around" -> space_around
 
+padding_top_rule: "padding-top:" number unit ";"
+padding_bottom_rule: "padding-bottom:" number unit ";"
+padding_left_rule: "padding-left:" number unit ";"
+padding_right_rule: "padding-right:" number unit ";"
+
+margin_top_rule: "margin-top:" number unit ";"
+margin_bottom_rule: "margin-bottom:" number unit ";"
+margin_left_rule: "margin-left:" number unit ";"
+margin_right_rule: "margin-right:" number unit ";"
 
 border_radius_rule: "border-radius:" number unit ";"
-border_rule: "border:" number unit "solid" COLOR ";"
+border_rule: "border:" number unit "solid" COLOR_VALUE ";"
 
-background_rule: "background:" COLOR ";"
+background_rule: "background:" COLOR_VALUE ";"
+
+color_rule: "color:" COLOR_VALUE ";"
 
 # values
 number: SIGNED_NUMBER
 unit: "px" -> px | "em" -> em | "rem" -> rem | "vw" -> vw | "vh" -> vh | "%" -> percent
 TXT: /[^<>]+/
-COLOR: /\#[0-9a-fA-F]{6}/
+COLOR_VALUE: /\#[0-9a-fA-F]{6}/
 
 %import common.SIGNED_NUMBER
 %import common.WS
@@ -278,6 +289,35 @@ class HTMLCSSTransformer(Transformer):
 
     def align_content_rule(self, items):
         return f"align-content: {items[0]};"
+    
+    def padding_top_rule(self, items):
+        return f"padding-top:{items[0]}{items[1]};"
+
+    def padding_bottom_rule(self, items):
+        return f"padding-bottom:{items[0]}{items[1]};"
+
+    def padding_left_rule(self, items):
+        return f"padding-left:{items[0]}{items[1]};"
+
+    def padding_right_rule(self, items):
+        return f"padding-right:{items[0]}{items[1]};"
+    
+    def margin_top_rule(self, items):
+        return f"margin-top:{items[0]}{items[1]};"
+
+    def margin_bottom_rule(self, items):
+        return f"margin-bottom:{items[0]}{items[1]};"
+
+    def margin_left_rule(self, items):
+        return f"margin-left:{items[0]}{items[1]};"
+
+    def margin_right_rule(self, items):
+        return f"margin-right:{items[0]}{items[1]};"
+    
+    def color_rule(self, items):
+        return f"color:{items[0]};"
+
+    # values
 
     def number(self, chilren):
         return chilren[0]
@@ -309,7 +349,7 @@ class HTMLCSSTransformer(Transformer):
     def SIGNED_NUMBER(self, token):
         return token.value
 
-    def COLOR(self, token):
+    def COLOR_VALUE(self, token):
         return token.value
 
     def TXT(self, token):
@@ -569,13 +609,13 @@ class HTMLCSS(Environment):
             terminal_name_to_vocab={
                 "WORD": string.ascii_letters + "-",
                 "SIGNED_NUMER": string.digits + ".",
-                "COLOR": string.hexdigits + "#",
+                "COLOR_VALUE": string.hexdigits + "#",
                 "TXT": string.printable,
                 "ESCAPED_STRING": string.printable,
             },
             terminal_to_custom_sampler={
                 Terminal("TXT"): generate_believable_text,
-                Terminal("COLOR"): lambda: "#"
+                Terminal("COLOR_VALUE"): lambda: "#"
                 + "".join(random.choice(string.hexdigits) for _ in range(6)),
                 Terminal("SIGNED_NUMBER"): lambda: round(random.uniform(0, 10), 2),
             },
