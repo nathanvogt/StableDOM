@@ -42,7 +42,10 @@ button: "<button" "style=" style ">" (content | TEXT)? "</button>"
 # css
 style: "\"" css_rule* "\""
 
-css_rule: display_rule | border_radius_rule | border_rule | background_rule
+css_rule: width_rule | height_rule | display_rule | border_radius_rule | border_rule | background_rule
+
+width_rule: "width:" number unit ";"
+height_rule: "height:" number unit ";"
 
 display_rule: "display:" display_value ";"
 display_value: "block" -> display_block | "inline" -> display_inline | "inline-block" -> display_inline_block | "none" -> display_none | "flex" -> display_flex | "grid" -> display_grid
@@ -179,6 +182,12 @@ class HTMLCSSTransformer(Transformer):
 
     def css_rule(self, items):
         return "".join(items)
+
+    def width_rule(self, items):
+        return f"width:{items[0]}{items[1]};"
+
+    def height_rule(self, items):
+        return f"height:{items[0]}{items[1]};"
 
     def display_rule(self, items):
         return f"display:{items[0]};"
