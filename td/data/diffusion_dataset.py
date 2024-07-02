@@ -136,9 +136,9 @@ class TreeDiffusionDataset(IterableDataset):
             #     print("Training:", training_examples[i][0])
             #     print("\n\n")
         except Exception as e:
-            # print("Restarting")
-            logging.warning(f"Failed to compile: {e}")
-            logging.exception(e)
+            print("Restarting")
+            # logging.warning(f"Failed to compile: {e}")
+            # logging.exception(e)
             return self._produce_batch()
         tokenized = []
         context_tokens_mask = []
