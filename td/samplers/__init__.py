@@ -128,7 +128,6 @@ class ConstrainedRandomSampler(GrammarSampler):
             choices = self.grammar._nonterminals[nt.data.name]
 
             choice_costs = self.grammar._min_primitives_choices[nt.data]
-            # print(f"{choice_costs=}")
 
             if choose_fn is None:
                 selected_choices = choices
@@ -141,11 +140,6 @@ class ConstrainedRandomSampler(GrammarSampler):
                 ]
 
             chosen = random.choice(selected_choices)
-            # print(f"{chosen=}")
-            # if nt.data.name == "input_type":
-            #     print(f"input type")
-            #     print(f"{choices=}")
-            #     print(f"{chosen=}")
 
             if return_steps:
                 choice_history.append(
