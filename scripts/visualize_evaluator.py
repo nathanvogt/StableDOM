@@ -47,9 +47,9 @@ def print_some_batches(batch_size):
         min_primitives=1,
         max_primitives=1,
         sample_min_primitives=2,
-        sample_max_primitives=10,
-        selection_max_primitives=2,
-        replacement_max_primitives=2,
+        sample_max_primitives=16,
+        selection_max_primitives=4,
+        replacement_max_primitives=4,
         forward_mode="path",
         target_observation=False,
         current_observation=False,
@@ -132,7 +132,7 @@ def compare_env_loading_times(num_batches=10, num_runs=5):
 
 def main():
     # print_some_samples()
-    print_some_batches(batch_size=1)
+    print_some_batches(batch_size=4)
 
 
 if __name__ == "__main__":

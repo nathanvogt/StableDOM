@@ -42,13 +42,25 @@ button: "<button" "style=" style ">" (content | TXT)? "</button>"
 # css
 style: "\"" css_rule* "\""
 
-css_rule: width_rule | height_rule | display_rule | border_radius_rule | border_rule | background_rule
+css_rule: width_rule | height_rule | display_rule | border_radius_rule | border_rule | background_rule | flex_direction_rule | justify_content_rule | flex_wrap_rule | align_items_rule | align_content_rule
 
 width_rule: "width:" number unit ";"
 height_rule: "height:" number unit ";"
 
 display_rule: "display:" display_value ";"
 display_value: "block" -> display_block | "inline" -> display_inline | "inline-block" -> display_inline_block | "none" -> display_none | "flex" -> display_flex | "grid" -> display_grid
+
+flex_direction_rule: "flex-direction:" flex_direction_value ";"
+flex_direction_value: "row" -> row | "row-reverse" -> row_reverse | "column" -> column | "column-reverse" -> column_reverse
+justify_content_rule: "justify-content:" justify_content_value ";"
+justify_content_value: "flex-start" -> flex_start | "flex-end" -> flex_end | "center" -> center | "space-between" -> space_between | "space-around" -> space_around | "space-evenly" -> space_evenly
+flex_wrap_rule: "flex-wrap:" flex_wrap_value ";"
+flex_wrap_value: "nowrap" -> nowrap | "wrap" -> wrap | "wrap-reverse" -> wrap_reverse
+align_items_rule: "align-items:" align_items_value ";"
+align_items_value: "stretch" -> stretch | "flex-start" -> flex_start | "flex-end" -> flex_end | "center" -> center | "baseline" -> baseline
+align_content_rule: "align-content:" align_content_value ";"
+align_content_value: "stretch" -> stretch | "flex-start" -> flex_start | "flex-end" -> flex_end | "center" -> center | "space-between" -> space_between | "space-around" -> space_around
+
 
 border_radius_rule: "border-radius:" number unit ";"
 border_rule: "border:" number unit "solid" COLOR ";"
@@ -221,6 +233,68 @@ class HTMLCSSTransformer(Transformer):
 
     def background_rule(self, items):
         return f"background:{items[0]};"
+
+    # flex properties
+    def row(self, _):
+        return "row"
+
+    def row_reverse(self, _):
+        return "row-reverse"
+
+    def column(self, _):
+        return "column"
+
+    def column_reverse(self, _):
+        return "column-reverse"
+
+    def nowrap(self, _):
+        return "nowrap"
+
+    def wrap(self, _):
+        return "wrap"
+
+    def wrap_reverse(self, _):
+        return "wrap-reverse"
+
+    def flex_start(self, _):
+        return "flex-start"
+
+    def flex_end(self, _):
+        return "flex-end"
+
+    def center(self, _):
+        return "center"
+
+    def baseline(self, _):
+        return "baseline"
+
+    def stretch(self, _):
+        return "stretch"
+
+    def space_between(self, _):
+        return "space-between"
+
+    def space_around(self, _):
+        return "space-around"
+
+    def space_evenly(self, _):
+        return "space-evenly"
+
+    # Methods for flex rules
+    def flex_direction_rule(self, items):
+        return f"flex-direction: {items[0]};"
+
+    def flex_wrap_rule(self, items):
+        return f"flex-wrap: {items[0]};"
+
+    def justify_content_rule(self, items):
+        return f"justify-content: {items[0]};"
+
+    def align_items_rule(self, items):
+        return f"align-items: {items[0]};"
+
+    def align_content_rule(self, items):
+        return f"align-content: {items[0]};"
 
     def number(self, chilren):
         return chilren[0]
