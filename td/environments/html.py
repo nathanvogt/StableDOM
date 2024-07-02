@@ -21,23 +21,23 @@ content: element*
 element: div | span | p | ul | li | h1 | h2 | h3 | h4 | h5 | h6 | form | input | button
 
 # elements
-div: "<div" "style=" style ">" (content | TEXT)? "</div>"
-span: "<span" "style=" style ">" (content | TEXT)? "</span>"
-p: "<p" "style=" style ">" (content | TEXT)? "</p>"
+div: "<div" "style=" style ">" (content | TXT)? "</div>"
+span: "<span" "style=" style ">" (content | TXT)? "</span>"
+p: "<p" "style=" style ">" (content | TXT)? "</p>"
 ul: "<ul" "style=" style ">" li* "</ul>"
-li: "<li" "style=" style ">" (content | TEXT)? "</li>"
-h1: "<h1" "style=" style ">" (content | TEXT)? "</h1>"
-h2: "<h2" "style=" style ">" (content | TEXT)? "</h2>"
-h3: "<h3" "style=" style ">" (content | TEXT)? "</h3>"
-h4: "<h4" "style=" style ">" (content | TEXT)? "</h4>"
-h5: "<h5" "style=" style ">" (content | TEXT)? "</h5>"
-h6: "<h6" "style=" style ">" (content | TEXT)? "</h6>"
-form: "<form" "style=" style ">" (content | TEXT)? "</form>"
+li: "<li" "style=" style ">" (content | TXT)? "</li>"
+h1: "<h1" "style=" style ">" (content | TXT)? "</h1>"
+h2: "<h2" "style=" style ">" (content | TXT)? "</h2>"
+h3: "<h3" "style=" style ">" (content | TXT)? "</h3>"
+h4: "<h4" "style=" style ">" (content | TXT)? "</h4>"
+h5: "<h5" "style=" style ">" (content | TXT)? "</h5>"
+h6: "<h6" "style=" style ">" (content | TXT)? "</h6>"
+form: "<form" "style=" style ">" (content | TXT)? "</form>"
 
-input: "<input" "type=" input_type "style=" style "/>"
+input: "<input" "type=" "\"" input_type "\"" "style=" style "/>"
 input_type: "text" -> input_text | "password" -> input_password | "email" -> input_email | "number" -> input_number | "date" -> input_date | "checkbox" -> input_checkbox | "radio" -> input_radio
 
-button: "<button" "style=" style ">" (content | TEXT)? "</button>"
+button: "<button" "style=" style ">" (content | TXT)? "</button>"
 
 # css
 style: "\"" css_rule* "\""
@@ -58,7 +58,7 @@ background_rule: "background:" COLOR ";"
 # values
 number: SIGNED_NUMBER
 unit: "px" -> px | "em" -> em | "rem" -> rem | "vw" -> vw | "vh" -> vh | "%" -> percent
-TEXT: /[^<>]+/
+TXT: /[^<>]+/
 COLOR: /\#[0-9a-fA-F]{6}/
 
 %import common.SIGNED_NUMBER
@@ -255,7 +255,7 @@ class HTMLCSSTransformer(Transformer):
     def COLOR(self, token):
         return token.value
 
-    def TEXT(self, token):
+    def TXT(self, token):
         return token.value
 
 
@@ -513,11 +513,11 @@ class HTMLCSS(Environment):
                 "WORD": string.ascii_letters + "-",
                 "NUMBER": string.digits + ".",
                 "COLOR": string.hexdigits + "#",
-                "TEXT": string.printable,
+                "TXT": string.printable,
                 "ESCAPED_STRING": string.printable,
             },
             terminal_to_custom_sampler={
-                Terminal("TEXT"): generate_believable_text,
+                Terminal("TXT"): generate_believable_text,
                 Terminal("COLOR"): lambda: "#"
                 + "".join(random.choice(string.hexdigits) for _ in range(6)),
                 Terminal("SIGNED_NUMBER"): lambda: round(random.uniform(0, 10), 2),

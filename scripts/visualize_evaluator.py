@@ -132,7 +132,7 @@ def compare_env_loading_times(num_batches=10, num_runs=5):
 
 def main():
     # print_some_samples()
-    print_some_batches(batch_size=4)
+    print_some_batches(batch_size=1)
 
 
 if __name__ == "__main__":
