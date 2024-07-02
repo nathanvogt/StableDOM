@@ -28,8 +28,10 @@ class OneStepEvaluator(object):
         seed: int = 0,
         num_problems: int = 256,
         evaluation_batch_size: int = 8,
-        min_primitives: int = 2,
-        max_primitives: int = 7,
+        sample_min_primitives: int = 2,
+        sample_max_primitives: int = 7,
+        selection_max_primitives: int = 2,
+        replacement_max_primitives: int = 2,
         device: str = "cpu",
         target_observation: bool = False,
         non_empty: bool = True,
@@ -47,8 +49,8 @@ class OneStepEvaluator(object):
         def sample_fn():
             sample = sampler.sample(
                 env.grammar.sample_start_symbol,
-                min_primitives=min_primitives,
-                max_primitives=max_primitives,
+                min_primitives=sample_min_primitives,
+                max_primitives=sample_max_primitives,
             )
             return sample
 
@@ -73,7 +75,14 @@ class OneStepEvaluator(object):
             .to(device)
         )
         self._mutations = [
-            random_mutation(e, env.grammar, sampler) for e in self._target_expressions
+            random_mutation(
+                e,
+                env.grammar,
+                sampler,
+                selection_max_primitives,
+                replacement_max_primitives,
+            )
+            for e in self._target_expressions
         ]
         self._current_expressions = [
             m.apply(e) for e, m in zip(self._target_expressions, self._mutations)

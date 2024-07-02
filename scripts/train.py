@@ -35,6 +35,11 @@ flags.DEFINE_integer("num_test_steps", 10, "Number of test steps")
 flags.DEFINE_integer("max_sequence_length", 512, "Maximum sequence length")
 flags.DEFINE_integer("min_primitives", 2, "Minimum number of primitives")
 flags.DEFINE_integer("max_primitives", 8, "Maximum number of primitives")
+flags.DEFINE_integer("sample_min_primitives", 1, "Minimum number of primitives")
+flags.DEFINE_integer("sample_max_primitives", 32, "Maximum number of primitives")
+flags.DEFINE_integer("selection_max_primitives", 16, "Maximum number of primitives")
+flags.DEFINE_integer("replacement_max_primitives", 16, "Maximum number of primitives")
+flags.DEFINE_integer("path_max_primitives", 8, "Maximum number of primitives")
 flags.DEFINE_integer("n_layers", 3, "Number of layers")
 flags.DEFINE_integer("d_model", 128, "Model dimension")
 flags.DEFINE_integer("num_heads", 8, "Number of heads")
@@ -120,6 +125,10 @@ def main(argv):
         device=FLAGS.device,
         evaluation_batch_size=FLAGS.batch_size,
         target_observation=FLAGS.target_observation,
+        sample_min_primitives=FLAGS.sample_min_primitives,
+        sample_max_primitives=FLAGS.sample_max_primitives,
+        selection_max_primitives=FLAGS.selection_max_primitives,
+        replacement_max_primitives=FLAGS.replacement_max_primitives,
     )
 
     random.seed(1)
@@ -142,6 +151,11 @@ def main(argv):
         "max_sequence_length": FLAGS.max_sequence_length,
         "max_primitives": FLAGS.max_primitives,
         "min_primitives": FLAGS.min_primitives,
+        "sample_min_primitives": FLAGS.sample_min_primitives,
+        "sample_max_primitives": FLAGS.sample_max_primitives,
+        "selection_max_primitives": FLAGS.selection_max_primitives,
+        "replacement_max_primitives": FLAGS.replacement_max_primitives,
+        "path_max_primitives": FLAGS.path_max_primitives,
         "n_layers": FLAGS.n_layers,
         "d_model": FLAGS.d_model,
         "num_heads": FLAGS.num_heads,
@@ -155,7 +169,7 @@ def main(argv):
 
     if FLAGS.wandb:
         wandb.init(
-            project="stabledom",
+            project="stabledom2",
             config=config,
         )
 
