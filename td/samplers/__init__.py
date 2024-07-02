@@ -127,7 +127,9 @@ class ConstrainedRandomSampler(GrammarSampler):
             if return_steps:
                 tree_string, start, end = tree_to_string_node_position(tree, nt)
             choices = self.grammar._nonterminals[nt.data.name]
+            # print(f"{choices=}")
             choice_costs = self.grammar._min_primitives_choices[nt.data]
+            # print(f"{choice_costs=}")
 
             if choose_fn is None:
                 selected_choices = choices
@@ -140,6 +142,7 @@ class ConstrainedRandomSampler(GrammarSampler):
                 ]
 
             chosen = random.choice(selected_choices)
+            # print(f"{chosen=}")
 
             if return_steps:
                 choice_history.append(

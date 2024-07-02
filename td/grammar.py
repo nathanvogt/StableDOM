@@ -4,6 +4,7 @@ from typing import Dict, List
 from lark import Lark, Tree
 from lark.grammar import Terminal
 from lark.tree_matcher import TreeMatcher
+from lark.lexer import Token
 
 
 class Compiler(ABC):

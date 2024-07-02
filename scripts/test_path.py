@@ -2,7 +2,7 @@ from lark import Token
 from td.environments.html import HTMLCSS, HTMLCSSTransformer
 from td.learning.tokenizer import Tokenizer
 from td.samplers import ConstrainedRandomSampler
-from td.samplers.mutator import random_mutation
+from td.samplers.mutator import random_mutation, find_path, one_step_path_mutations
 
 max_sequence_length = 1024
 
@@ -13,25 +13,28 @@ def main():
     grammar = env.grammar
     transformer = HTMLCSSTransformer()
     sampler = ConstrainedRandomSampler(grammar)
-    program = """
+
+    source = """
 <html>
 <head>
 </head>
 <body>
-<div style=""></div>
-<div style="border-radius: 1px; display: flex;"></div>
-<div style=""></div>
-<div style=""></div>
+    <div style=""></div>
 </body>
 </html>
 """
 
-    expr = sampler.sample(
-        grammar.sample_start_symbol, min_primitives=1, max_primitives=20
-    )
-    print(expr)
-    # mutation = random_mutation(program, grammar, sampler)
-    # print(mutation)
+    target = """
+<html>
+<head>
+</head>
+<body>
+    <div style="border: 1px solid #FF0000; border-radius: 2px; display: flex;"></div>
+</body>
+</html>
+"""
+    path = find_path(source, target, grammar, sampler)
+    print(path)
 
 
 if __name__ == "__main__":

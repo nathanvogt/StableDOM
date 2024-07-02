@@ -131,14 +131,13 @@ def random_mutation(
     candidates_with_count = [
         x for x in candidates if x.primitive_count == candidate_primitive_count
     ]
-    # candidates = candidates_with_count
+    candidates = candidates_with_count
 
     while True:
         if not candidates:
             return None
 
-        # candidate = random.choice(candidates)
-        candidate = candidates[15]
+        candidate = random.choice(candidates)
 
         if not hasattr(candidate, "parent"):
             # We have the root, sample a new expression.
@@ -152,23 +151,16 @@ def random_mutation(
             end = candidate.meta.end_pos
 
             sub_expression = expression[start:end]
-            print(f"candidate: {candidate.pretty()}")
-            print("\n")
-            print(f"parent: {parent.pretty()}")
             self_child_index = parent.children.index(candidate)
-            print(f"child index: {self_child_index}")
-            print("\n")
-
             matched = grammar.tree_matcher.match_tree(parent, parent.data)
-            print(f"matched: {matched.pretty()}")
-            matched_child = find_nth_child(matched, self_child_index)
-            print(f"matched_child: {matched_child.pretty()}")
+            matched_child = matched.children[
+                min(self_child_index, len(matched.children) - 1)
+            ]
             if matched_child is None:
                 raise ValueError("Could not find matched child")
                 # candidates.remove(candidate)
                 # continue
             rule_name = matched_child.data
-            print(f"rule_name: {rule_name}")
             options = grammar.nonterminals[rule_name]
 
             if len(options) <= 1:
@@ -249,7 +241,11 @@ def one_step_path_mutations(
     parent_adder = AddParents()
 
     def prepare_tree(expression):
-        tree = grammar.parse(expression)
+        try:
+            tree = grammar.parse(expression)
+        except Exception as e:
+            print(f"\n\nError in parse: {expression=}\n\n")
+            raise e
 
         primitive_counter.visit(tree)
         parent_adder.visit(tree)
@@ -261,12 +257,20 @@ def one_step_path_mutations(
         if len(nodeA.children) != len(nodeB.children):
             return False
 
-        if len(nodeA.children) == 1:
-            return node_eq(nodeA.children[0], nodeB.children[0])
+        # if len(nodeA.children) == 1:
+        #     return node_eq(nodeA.children[0], nodeB.children[0])
 
         return nodeA.data == nodeB.data
 
     def treediff(treeA, treeB, expressionA, expressionB):
+        # print(
+        #     f"treeA token: {isinstance(treeA, Token)}, treeB token: {isinstance(treeB, Token)}"
+        # )
+        # print(treeA.pretty() if not isinstance(treeA, Token) else treeA)
+        # print("\n")
+        # print(treeB.pretty() if not isinstance(treeB, Token) else treeB)
+        # print("\n")
+
         if isinstance(treeA, Token) and isinstance(treeB, Token):
             if treeA.value == treeB.value:
                 return []
@@ -302,7 +306,23 @@ def one_step_path_mutations(
             for childA, childB in zip(treeA.children, treeB.children):
                 rv.extend(treediff(childA, childB, expressionA, expressionB))
             return rv
+        # if (
+        #     isinstance(treeA, Tree) and isinstance(treeB, Tree)
+        # ) and treeA.data == treeB.data:
+        #     # Same node, different children.
+        #     """
+        #     - If there are children in common, keep them the same
+        #     - If treeA has children that treeB doesn't, remove them
+        #     - If treeB has children that treeA doesn't, add their rules
+
+        #     """
+        #     childrenA = treeA.children
+        #     childrenB = treeB.children
+
+        #     print("they are the same but different children")
+        #     raise ValueError("Trees are not equal")
         else:
+            # print("else")
             source_passes = (
                 small_sources and getattr(treeA, "primitive_count", 1) <= max_primitives
             ) or (not small_sources)
@@ -310,7 +330,7 @@ def one_step_path_mutations(
                 getattr(treeB, "primitive_count", 1) <= max_primitives
                 and not truncate_nonzero
             ) or (truncate_nonzero and getattr(treeB, "primitive_count", 1) <= 0)
-
+            # print(f"{source_passes=}, {target_passes=}")
             if source_passes and target_passes:
                 return [
                     Mutation(
@@ -329,11 +349,23 @@ def one_step_path_mutations(
                     self_child_index = parent.children.index(treeA)
 
                     matched = grammar.tree_matcher.match_tree(parent, parent.data)
-                    rule_name = matched.children[self_child_index].data
+                    # matched_child = find_nth_child(matched, self_child_index)
+                    matched_child = matched.children[
+                        min(self_child_index, len(matched.children) - 1)
+                    ]
+                    # print("next")
+                    # print("treeA:\n", treeA.pretty())
+                    # print("parent:\n", parent.pretty())
+                    # print("matched:\n", matched.pretty())
+                    # print("matched_child:\n", matched_child.pretty())
+                    rule_name = matched_child.data
+                    # print(f"{rule_name=}")
                     start_symbol = grammar.names_to_symbols[rule_name]
 
                 b = expressionB[treeB.meta.start_pos : treeB.meta.end_pos]
+                # print(f"target expr {b=}")
                 if treeB.primitive_count <= max_primitives:
+                    # print("treeB has fewer primitives")
                     return [
                         Mutation(
                             start=treeA.meta.start_pos,
@@ -341,6 +373,8 @@ def one_step_path_mutations(
                             replacement=b,
                         )
                     ]
+                # else:
+                # print("treeB has more primitives")
 
                 min_primitives = min(max_primitives, treeB.primitive_count)
                 new_expression = sampler.sample(
@@ -348,7 +382,7 @@ def one_step_path_mutations(
                     min_primitives=min_primitives,
                     max_primitives=max_primitives,
                 )
-
+                # print(f"{new_expression=}")
                 tightening_diffs = one_step_path_mutations(
                     new_expression,
                     b,
@@ -356,6 +390,7 @@ def one_step_path_mutations(
                     max_primitives,
                     truncate_nonzero=True,
                 )
+                # print(f"{tightening_diffs=}")
 
                 new_expression = apply_all_mutations(new_expression, tightening_diffs)
 
@@ -379,7 +414,6 @@ def one_step_path_mutations(
     except Exception as e:
         print(f"\n\nError in prepare_tree: {treeA=} {exprA=}, {exprB=}\n\n")
         raise e
-
     return treediff(treeA, treeB, exprA, exprB)
 
 

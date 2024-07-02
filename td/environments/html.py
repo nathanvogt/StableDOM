@@ -16,7 +16,7 @@ import io
 import random
 
 grammar_spec = r"""
-start: html_document
+start: html_document | body | content | style
 html_document: "<html>" head body "</html>"
 head: "<head>" "</head>"
 body: "<body>" content "</body>"
@@ -48,16 +48,17 @@ style: "\"" css_rule* "\""
 
 css_rule: display_rule | border_radius_rule | border_rule | background_rule
 
-display_rule: "display:" DISPLAY_VALUE ";"
-DISPLAY_VALUE: "block" | "inline" | "inline-block" | "none" | "flex" | "grid"
+display_rule: "display:" display_value ";"
+display_value: "block" -> display_block | "inline" -> display_inline | "inline-block" -> display_inline_block | "none" -> display_none | "flex" -> display_flex | "grid" -> display_grid
 
-border_radius_rule: "border-radius:" number UNIT ";"
-border_rule: "border:" number UNIT "solid" COLOR ";"
+border_radius_rule: "border-radius:" number unit ";"
+border_rule: "border:" number unit "solid" COLOR ";"
 
 background_rule: "background:" COLOR ";"
 
+# values
 number: SIGNED_NUMBER
-UNIT: "px" | "em" | "rem" | "vw" | "vh" | "vmin" | "vmax" | "%" | "fr"
+unit: "px" -> px | "em" -> em | "rem" -> rem | "vw" -> vw | "vh" -> vh | "%" -> percent
 TEXT: /[^<>]+/
 COLOR: /\#[0-9a-fA-F]{6}/
 
@@ -103,8 +104,26 @@ class HTMLCSSTransformer(Transformer):
     def display_rule(self, items):
         return f"display:{items[0]};"
 
-    def DISPLAY_VALUE(self, token):
-        return token.value
+    def display_value(self, children):
+        return children[0]
+
+    def display_block(self, children):
+        return "block"
+
+    def display_inline(self, children):
+        return "inline"
+
+    def display_inline_block(self, children):
+        return "inline-block"
+
+    def display_none(self, children):
+        return "none"
+
+    def display_flex(self, children):
+        return "flex"
+
+    def display_grid(self, children):
+        return "grid"
 
     def border_radius_rule(self, items):
         return f"border-radius:{items[0]}{items[1]};"
@@ -119,8 +138,25 @@ class HTMLCSSTransformer(Transformer):
         return chilren[0]
 
     def unit(self, children):
-        print(children)
         return children[0]
+
+    def px(self, children):
+        return "px"
+
+    def em(self, children):
+        return "em"
+
+    def rem(self, children):
+        return "rem"
+
+    def vw(self, children):
+        return "vw"
+
+    def vh(self, children):
+        return "vh"
+
+    def percent(self, children):
+        return "%"
 
     def SIGNED_NUMBER(self, token):
         return token.value
@@ -150,7 +186,6 @@ class HTMLCSSCompiler(Compiler):
 
     def compile(self, expression: Tree):
         content = self._expression_to_html.transform(expression)
-        print(f"content: {content}")
         self._driver.execute_script(f"document.body.innerHTML = '{content}'")
         png = self._driver.get_screenshot_as_png()
 
@@ -344,7 +379,7 @@ class HTMLCSS(Environment):
             grammar_spec,
             start="start",
             sample_start="html_document",
-            primitives=["element", "css_rule"],
+            primitives=["div", "css_rule"],
             terminal_name_to_vocab={
                 "WORD": string.ascii_letters + "-",
                 "NUMBER": string.digits + ".",
