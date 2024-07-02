@@ -128,13 +128,6 @@ def random_mutation(
 
     while True:
         if not candidates:
-            # print(f"No mutation for {expression=}\n")
-            # print(f"{selection_max_primitives=}")
-            # print(f"candidates pre: {candidates_pre}")
-            # print(f"{candidate_primitive_counts=}")
-            # print(f"{unique_primitive_counts=}")
-            # print(f"{candidate_primitive_count=}")
-            # print(f"{original_candidates=}")
             return None
 
         candidate = random.choice(candidates)
@@ -167,10 +160,6 @@ def random_mutation(
             options = grammar.nonterminals[rule_name]
 
             if len(options) <= 1:
-                if len(candidates) <= 1:
-                    pass
-                    # print(f"one option for last {candidate=}")
-                    # print(f"{options=}")
                 candidates.remove(candidate)
                 continue
 

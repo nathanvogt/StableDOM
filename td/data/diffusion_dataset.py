@@ -130,12 +130,11 @@ class TreeDiffusionDataset(IterableDataset):
                 )
                 for expression, _ in training_examples
             ]
-            # print target examples and trianing examples
             # for i in range(len(target_expressions)):
-            # print("Target:  ", target_expressions[i])
-            # print("\n")
-            # print("Training:", training_examples[i][0])
-            # print("\n\n")
+            #     print("Target:  ", target_expressions[i])
+            #     print("\n")
+            #     print("Training:", training_examples[i][0])
+            #     print("\n\n")
         except Exception as e:
             # print("Restarting")
             logging.warning(f"Failed to compile: {e}")
@@ -184,12 +183,6 @@ class TreeDiffusionDataset(IterableDataset):
         if any(t is None for t in tokenized):
             print("Retrying")
             return self._produce_batch()
-        # print each original expression, mutated expression pair
-        # for i in range(len(target_expressions)):
-        #     print("Original:", target_expressions[i])
-        #     print("\n")
-        #     print("Mutated:", training_examples[i][0])
-        #     print("\n\n")
         return (
             np.array(tokenized),
             np.array(context_tokens_mask),

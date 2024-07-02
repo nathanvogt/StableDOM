@@ -76,20 +76,6 @@ class OneStepEvaluator(object):
             .to(device)
         )
 
-        def get_random_mutation(expr: str):
-            max_steps = 50
-            for _ in range(max_steps):
-                m = random_mutation(
-                    expr,
-                    env.grammar,
-                    sampler,
-                    selection_max_primitives,
-                    replacement_max_primitives,
-                )
-                if m is not None:
-                    return m
-            raise ValueError("Could not find a valid mutation.")
-
         self._mutations = [
             random_mutation(
                 e,
