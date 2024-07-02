@@ -396,6 +396,11 @@ def one_step_path_mutations(
 
                 new_expression = apply_all_mutations(new_expression, tightening_diffs)
 
+                # if tree A meta hasno start pos, print treeA
+                if not hasattr(treeA.meta, "start_pos"):
+                    print(treeA.pretty())
+                    print(treeA.meta)
+
                 return [
                     Mutation(
                         start=treeA.meta.start_pos,

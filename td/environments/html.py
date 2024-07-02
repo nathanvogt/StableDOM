@@ -35,6 +35,7 @@ h6: "<h6" "style=" style ">" (content | TXT)? "</h6>"
 form: "<form" "style=" style ">" (content | TXT)? "</form>"
 
 input: "<input" "type=" "\"" input_type "\"" "style=" style "/>"
+# TODO: 'number' is causing a conflict with the number rule when converting to string (I think there)
 input_type: "text" -> input_text | "password" -> input_password | "email" -> input_email | "number" -> input_number | "date" -> input_date | "checkbox" -> input_checkbox | "radio" -> input_radio
 
 button: "<button" "style=" style ">" (content | TXT)? "</button>"
@@ -585,7 +586,7 @@ class HTMLCSS(Environment):
             primitives=["element", "css_rule"],
             terminal_name_to_vocab={
                 "WORD": string.ascii_letters + "-",
-                "NUMBER": string.digits + ".",
+                "SIGNED_NUMER": string.digits + ".",
                 "COLOR": string.hexdigits + "#",
                 "TXT": string.printable,
                 "ESCAPED_STRING": string.printable,
