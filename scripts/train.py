@@ -72,14 +72,16 @@ class TreeDiffusionDataset(IterableDataset):
         min_steps,
         max_steps,
         max_sequence_length,
-        min_primitives,
-        max_primitives,
+        min_primitives,  # for random mix samples
+        max_primitives,  # for random mix samples
         forward_mode,
         target_observation,
         current_observation,
         random_mix,
-        sample_min_primitives=None,
-        sample_max_primitives=None,
+        sample_min_primitives=None,  # for original sample (before mutating)
+        sample_max_primitives=None,  # for original sample (before mutating)
+        selection_max_primitives=None,  # max size selected for mutation
+        replacement_max_primitives=None,  # max size of mutation replacement
     ):
         self._env = None
         self._env_name = env_name
@@ -90,6 +92,8 @@ class TreeDiffusionDataset(IterableDataset):
         self._min_primitives = min_primitives
         self._sample_min_primitives = sample_min_primitives or min_primitives
         self._sample_max_primitives = sample_max_primitives or max_primitives
+        self._selection_max_primitives = selection_max_primitives or max_primitives
+        self._replacement_max_primitives = replacement_max_primitives or max_primitives
         self._max_primitives = max_primitives
         self._forward_mode = forward_mode
         self._target_observation = target_observation
@@ -116,7 +120,6 @@ class TreeDiffusionDataset(IterableDataset):
                 random.randint(self._min_steps, self._max_steps)
                 for _ in range(self._batch_size)
             ]
-
             if self._forward_mode == "path":
                 training_examples = [
                     forward_process_with_path(
@@ -126,6 +129,8 @@ class TreeDiffusionDataset(IterableDataset):
                         self._sampler,
                         min_primitives=self._min_primitives,
                         max_primitives=self._max_primitives,
+                        selection_max_primitives=self._selection_max_primitives,
+                        replacement_max_primitives=self._replacement_max_primitives,
                         p_random=self._random_mix,
                     )
                     for expression, step in zip(target_expressions, steps)
@@ -143,7 +148,14 @@ class TreeDiffusionDataset(IterableDataset):
                 ]
             else:
                 training_examples = [
-                    forward_process(expression, step, self._env.grammar, self._sampler)
+                    forward_process(
+                        expression,
+                        step,
+                        self._env.grammar,
+                        self._sampler,
+                        self._selection_max_primitives,
+                        self._replacement_max_primitives,
+                    )
                     for expression, step in zip(target_expressions, steps)
                 ]
 
@@ -247,7 +259,6 @@ class TreeDiffusionDataset(IterableDataset):
             max_token_length=self._max_sequence_length,
             max_sequence_length=self._max_sequence_length,
         )
-
         while True:
             yield self._produce_batch()
 

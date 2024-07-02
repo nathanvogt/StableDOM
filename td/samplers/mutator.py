@@ -121,6 +121,7 @@ def random_mutation(
     candidates = nodes_with_max_primitives(
         tree, grammar.primitives, selection_max_primitives
     )
+    # print(f"{candidates=}")
 
     # for x in candidates:
     #     print(x.pretty())
@@ -138,6 +139,7 @@ def random_mutation(
             return None
 
         candidate = random.choice(candidates)
+        # print(f"{candidate=}")
 
         if not hasattr(candidate, "parent"):
             # We have the root, sample a new expression.
@@ -456,12 +458,23 @@ def find_path(
 
 
 def forward_process(
-    expression: str, num_steps: int, grammar: Grammar, sampler: ConstrainedRandomSampler
+    expression: str,
+    num_steps: int,
+    grammar: Grammar,
+    sampler: ConstrainedRandomSampler,
+    selection_max_primitives=2,
+    replacement_max_primitives=2,
 ) -> Tuple[str, Mutation]:
     current_expression = expression
     reverse_mutation = None
     for i in range(num_steps):
-        mutation = random_mutation(current_expression, grammar, sampler)
+        mutation = random_mutation(
+            current_expression,
+            grammar,
+            sampler,
+            selection_max_primitives,
+            replacement_max_primitives,
+        )
         if mutation is None:
             raise ValueError("No mutation found")
 
@@ -478,9 +491,11 @@ def forward_process_with_path(
     num_steps: int,
     grammar: Grammar,
     sampler: ConstrainedRandomSampler,
-    min_primitives: int = 2,
-    max_primitives: int = 7,
-    small_primitive_count: int = 2,
+    min_primitives: int = 2,  # for random mode sampling
+    max_primitives: int = 7,  # for random mode sampling
+    path_max_primitives: int = 2,  # max size of path mutations
+    selection_max_primitives: int = 2,  # max size of selected nodes to mutate
+    replacement_max_primitives: int = 2,  # max size of mutation replacements
     p_random: float = 0.2,
     force_mode: str = None,
     return_full_path: bool = False,
@@ -495,11 +510,18 @@ def forward_process_with_path(
             grammar.sample_start_symbol, min_primitives, max_primitives
         )
     elif mode == "mutated":
-        mutated_expression, _ = forward_process(expression, num_steps, grammar, sampler)
+        mutated_expression, _ = forward_process(
+            expression,
+            num_steps,
+            grammar,
+            sampler,
+            selection_max_primitives,
+            replacement_max_primitives,
+        )
     else:
         raise ValueError("Invalid mode")
     path = find_path(
-        mutated_expression, expression, grammar, sampler, small_primitive_count
+        mutated_expression, expression, grammar, sampler, path_max_primitives
     )
 
     if path is None or len(path) == 0:
@@ -510,10 +532,12 @@ def forward_process_with_path(
             sampler,
             min_primitives,
             max_primitives,
-            small_primitive_count,
-            p_random,
-            None,
-            return_full_path,
+            path_max_primitives,
+            selection_max_primitives=selection_max_primitives,
+            replacement_max_primitives=replacement_max_primitives,
+            p_random=p_random,
+            force_mode=None,
+            return_full_path=return_full_path,
         )
 
     path_step = random.randint(0, len(path) - 1)

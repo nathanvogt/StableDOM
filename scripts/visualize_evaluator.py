@@ -42,16 +42,18 @@ def print_some_batches(batch_size):
         batch_size=batch_size,
         env_name="htmlcss",
         min_steps=1,
-        max_steps=2,
+        max_steps=1,
         max_sequence_length=1024,
         min_primitives=1,
-        max_primitives=2,
-        sample_min_primitives=1,
-        sample_max_primitives=4,
+        max_primitives=1,
+        sample_min_primitives=2,
+        sample_max_primitives=10,
+        selection_max_primitives=2,
+        replacement_max_primitives=2,
         forward_mode="path",
         target_observation=False,
         current_observation=False,
-        random_mix=0.2,
+        random_mix=0.0,
     )
     start_time = time.time()
     batch = next(iter(dataset))

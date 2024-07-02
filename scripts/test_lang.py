@@ -14,24 +14,17 @@ def main():
     transformer = HTMLCSSTransformer()
     sampler = ConstrainedRandomSampler(grammar)
     program = """
-<html>
-<head>
-</head>
-<body>
-<div style=""></div>
-<div style="border-radius: 1px; display: flex;"></div>
-<div style=""></div>
-<div style=""></div>
-</body>
-</html>
+<div style= " " > It Which know she your not year... Thus, That we how her that say even? </div> <div style= " " > Some work also then do its Us day a if say! This of this day light some us your? </div>
 """
 
-    expr = sampler.sample(
-        grammar.sample_start_symbol, min_primitives=1, max_primitives=20
-    )
-    print(expr)
-    # mutation = random_mutation(program, grammar, sampler)
-    # print(mutation)
+    # expr = sampler.sample(
+    #     grammar.sample_start_symbol, min_primitives=1, max_primitives=20
+    # )
+    # print(expr)
+    mutation = random_mutation(program, grammar, sampler)
+    print(f"{mutation=}")
+    mutated = mutation.apply(program)
+    print(f"{mutated=}")
 
 
 if __name__ == "__main__":

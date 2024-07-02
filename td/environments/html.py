@@ -16,32 +16,28 @@ import io
 import random
 
 grammar_spec = r"""
-start: html_document | body | content | style
-html_document: "<html>" head body "</html>"
-head: "<head>" "</head>"
-body: "<body>" content "</body>"
+start: content | style
 content: element*
-element: div #| span | p | a | ul | li | h1 | h2 | h3 | h4 | h5 | h6 | table | form | input | button
+element: div | span | p | ul | li | h1 | h2 | h3 | h4 | h5 | h6 | form | input | button
 
 # elements
 div: "<div" "style=" style ">" (content | TEXT)? "</div>"
-# span: "<span>" (content | TEXT)? "</span>"
-# p: "<p>" (content | TEXT)? "</p>"
-# a: "<a>" (content | TEXT)? "</a>"
-# ul: "<ul>" (li)* "</ul>"
-# li: "<li>" (content | TEXT)? "</li>"
-# h1: "<h1>" (content | TEXT)? "</h1>"
-# h2: "<h2>" (content | TEXT)? "</h2>"
-# h3: "<h3>" (content | TEXT)? "</h3>"
-# h4: "<h4>" (content | TEXT)? "</h4>"
-# h5: "<h5>" (content | TEXT)? "</h5>"
-# h6: "<h6>" (content | TEXT)? "</h6>"
-# table: "<table>" (tr)* "</table>"
-# tr: "<tr>" (td)* "</tr>"
-# td: "<td>" (content | TEXT)? "</td>"
-# form: "<form>" (content | TEXT)? "</form>"
-# input: "<input>" (content | TEXT)? "</input>"
-# button: "<button>" (content | TEXT)? "</button>"
+span: "<span" "style=" style ">" (content | TEXT)? "</span>"
+p: "<p" "style=" style ">" (content | TEXT)? "</p>"
+ul: "<ul" "style=" style ">" li* "</ul>"
+li: "<li" "style=" style ">" (content | TEXT)? "</li>"
+h1: "<h1" "style=" style ">" (content | TEXT)? "</h1>"
+h2: "<h2" "style=" style ">" (content | TEXT)? "</h2>"
+h3: "<h3" "style=" style ">" (content | TEXT)? "</h3>"
+h4: "<h4" "style=" style ">" (content | TEXT)? "</h4>"
+h5: "<h5" "style=" style ">" (content | TEXT)? "</h5>"
+h6: "<h6" "style=" style ">" (content | TEXT)? "</h6>"
+form: "<form" "style=" style ">" (content | TEXT)? "</form>"
+
+input: "<input" "type=" input_type "style=" style "/>"
+input_type: "text" -> input_text | "password" -> input_password | "email" -> input_email | "number" -> input_number | "date" -> input_date | "checkbox" -> input_checkbox | "radio" -> input_radio
+
+button: "<button" "style=" style ">" (content | TEXT)? "</button>"
 
 # css
 style: "\"" css_rule* "\""
@@ -75,15 +71,6 @@ class HTMLCSSTransformer(Transformer):
     def start(self, items):
         return "".join(items)
 
-    def html_document(self, items):
-        return "".join(items)
-
-    def head(self, items):
-        return "".join(items)
-
-    def body(self, items):
-        return "".join(items)
-
     def content(self, items):
         return "".join(items)
 
@@ -94,6 +81,98 @@ class HTMLCSSTransformer(Transformer):
         style = items[0]
         content = items[1] if len(items) > 1 else ""
         return f'<div style="{style}">{content}</div>'
+
+    def span(self, items):
+        style = items[0]
+        content = items[1] if len(items) > 1 else ""
+        return f'<span style="{style}">{content}</span>'
+
+    def p(self, items):
+        style = items[0]
+        content = items[1] if len(items) > 1 else ""
+        return f'<p style="{style}">{content}</p>'
+
+    def a(self, items):
+        href = items[0]
+        style = items[1]
+        content = items[2] if len(items) > 2 else ""
+        return f'<a href={href} style="{style}">{content}</a>'
+
+    def ul(self, items):
+        style = items[0]
+        content = "".join(items[1:])
+        return f'<ul style="{style}">{content}</ul>'
+
+    def li(self, items):
+        style = items[0]
+        content = items[1] if len(items) > 1 else ""
+        return f'<li style="{style}">{content}</li>'
+
+    def h1(self, items):
+        style = items[0]
+        content = items[1] if len(items) > 1 else ""
+        return f'<h1 style="{style}">{content}</h1>'
+
+    def h2(self, items):
+        style = items[0]
+        content = items[1] if len(items) > 1 else ""
+        return f'<h2 style="{style}">{content}</h2>'
+
+    def h3(self, items):
+        style = items[0]
+        content = items[1] if len(items) > 1 else ""
+        return f'<h3 style="{style}">{content}</h3>'
+
+    def h4(self, items):
+        style = items[0]
+        content = items[1] if len(items) > 1 else ""
+        return f'<h4 style="{style}">{content}</h4>'
+
+    def h5(self, items):
+        style = items[0]
+        content = items[1] if len(items) > 1 else ""
+        return f'<h5 style="{style}">{content}</h5>'
+
+    def h6(self, items):
+        style = items[0]
+        content = items[1] if len(items) > 1 else ""
+        return f'<h6 style="{style}">{content}</h6>'
+
+    def form(self, items):
+        style = items[0]
+        content = "".join(items[1:])
+        return f'<form style="{style}">{content}</form>'
+
+    def input(self, items):
+        type_attr = items[0]
+        style = items[1]
+        return f'<input type={type_attr} style="{style}"/>'
+
+    def input_text(self, children):
+        return "text"
+
+    def input_password(self, children):
+        return "password"
+
+    def input_email(self, children):
+        return "email"
+
+    def input_number(self, children):
+        return "number"
+
+    def input_date(self, children):
+        return "date"
+
+    def input_checkbox(self, children):
+        return "checkbox"
+
+    def input_radio(self, children):
+        return "radio"
+
+    def button(self, items):
+        style = items[0]
+        content = items[1] if len(items) > 1 else ""
+        return f'<button style="{style}">{content}</button>'
 
     def style(self, items):
         return "".join(items)
@@ -157,6 +236,9 @@ class HTMLCSSTransformer(Transformer):
 
     def percent(self, children):
         return "%"
+
+    def ESCAPED_STRING(self, token):
+        return token.value
 
     def SIGNED_NUMBER(self, token):
         return token.value
@@ -351,25 +433,63 @@ def generate_believable_text():
         "Several",
     ]
 
-    sentence_enders = [".", ".", ".", "!", "?"]
+    sentence_enders = [".", "!", "?", "..."]
+
+    adjectives = [
+        "quick",
+        "lazy",
+        "beautiful",
+        "loud",
+        "mysterious",
+        "strange",
+        "bright",
+        "dark",
+        "light",
+    ]
 
     num_sentences = random.randint(1, 3)
     text = []
 
     for _ in range(num_sentences):
         sentence = [random.choice(sentence_starters)]
-        sentence_length = random.randint(1, 8)
+        sentence_length = random.randint(5, 12)
 
         for _ in range(sentence_length):
             word = random.choice(common_words)
-            if random.random() < 0.1:
+            if random.random() < 0.2:  # Increased chance for capitalization
                 word = word.capitalize()
+            if random.random() < 0.15:  # Chance to insert an adjective
+                word = random.choice(adjectives) + " " + word
             sentence.append(word)
 
         sentence = " ".join(sentence) + random.choice(sentence_enders)
+        if (
+            random.random() < 0.3
+        ):  # Chance to add a connector for more complex sentences
+            connector = random.choice(
+                ["However,", "Moreover,", "Nevertheless,", "Thus,", "Meanwhile,"]
+            )
+            next_sentence = generate_short_sentence(
+                common_words, sentence_starters, adjectives
+            )
+            sentence += " " + connector + " " + next_sentence
+
         text.append(sentence)
 
     return " ".join(text)
+
+
+def generate_short_sentence(common_words, sentence_starters, adjectives):
+    sentence = [random.choice(sentence_starters)]
+    sentence_length = random.randint(3, 7)
+    for _ in range(sentence_length):
+        word = random.choice(common_words)
+        if random.random() < 0.1:  # Consistency in style choices
+            word = word.capitalize()
+        if random.random() < 0.1:
+            word = random.choice(adjectives) + " " + word
+        sentence.append(word)
+    return " ".join(sentence) + random.choice([".", "!", "?", "..."])
 
 
 class HTMLCSS(Environment):
@@ -378,8 +498,8 @@ class HTMLCSS(Environment):
         self._grammar = Grammar(
             grammar_spec,
             start="start",
-            sample_start="html_document",
-            primitives=["div", "css_rule"],
+            sample_start="content",
+            primitives=["element", "css_rule"],
             terminal_name_to_vocab={
                 "WORD": string.ascii_letters + "-",
                 "NUMBER": string.digits + ".",
