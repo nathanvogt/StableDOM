@@ -90,7 +90,16 @@ class OneStepEvaluator(object):
                     return m
             raise ValueError("Could not find a valid mutation.")
 
-        self._mutations = [get_random_mutation(e) for e in self._target_expressions]
+        self._mutations = [
+            random_mutation(
+                e,
+                env.grammar,
+                sampler,
+                selection_max_primitives,
+                replacement_max_primitives,
+            )
+            for e in self._target_expressions
+        ]
         self._current_expressions = [
             m.apply(e) for e, m in zip(self._target_expressions, self._mutations)
         ]

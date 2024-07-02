@@ -141,7 +141,7 @@ def random_mutation(
 
         if (
             not hasattr(candidate, "parent")
-            # or grammar.names_to_symbols[candidate.parent.data] == grammar.start_symbol
+            or grammar.names_to_symbols[candidate.parent.data] == grammar.start_symbol
         ):
             # We have the root, sample a new expression.
             start = 0
@@ -442,7 +442,8 @@ def forward_process(
             replacement_max_primitives,
         )
         if mutation is None:
-            raise ValueError("No mutation found")
+            continue
+            # raise ValueError("No mutation found")
 
         # Premature optimization is the root of all evil.
         if i == num_steps - 1:
