@@ -18,7 +18,7 @@ import random
 grammar_spec = r"""
 start: content | style
 content: element*
-element: div | span | p | h1 | h2 | h3 | h4 | h5 | h6 | form | input | button
+element: div | span | p | h1 | h2 | h3 | h4 | h5 | h6 | form | input | button | text_area
 
 # elements
 div: "<div" "style=" style ">" (content | TXT)? "</div>"
@@ -31,6 +31,7 @@ h4: "<h4" "style=" style ">" (content | TXT)? "</h4>"
 h5: "<h5" "style=" style ">" (content | TXT)? "</h5>"
 h6: "<h6" "style=" style ">" (content | TXT)? "</h6>"
 form: "<form" "style=" style ">" (content | TXT)? "</form>"
+text_area: "<textarea" "style=" style ">" (content | TXT)? "</textarea>"
 
 input: "<input" "type=" "\"" input_type "\"" "style=" style "/>"
 # TODO: 'number' is causing a conflict with the number rule when converting to string (I think there)
@@ -41,7 +42,10 @@ button: "<button" "style=" style ">" (content | TXT)? "</button>"
 # css
 style: "\"" css_rule* "\""
 
-css_rule: width_rule | height_rule | display_rule | border_radius_rule | border_rule | background_rule | flex_direction_rule | justify_content_rule | flex_wrap_rule | align_items_rule | align_content_rule | padding_top_rule | padding_bottom_rule | padding_left_rule | padding_right_rule | margin_top_rule | margin_bottom_rule | margin_left_rule | margin_right_rule | color_rule
+css_rule: width_rule | height_rule | display_rule | border_radius_rule | border_rule | background_rule | flex_direction_rule | justify_content_rule | flex_wrap_rule | align_items_rule | align_content_rule | padding_top_rule | padding_bottom_rule | padding_left_rule | padding_right_rule | margin_top_rule | margin_bottom_rule | margin_left_rule | margin_right_rule | color_rule | text_align_rule
+
+text_align_rule: "text-align:" text_align_value ";"
+text_align_value: "left" -> text_align_left | "right" -> text_align_right | "center" -> text_align_center | "justify" -> text_align_justify
 
 width_rule: "width:" number unit ";"
 height_rule: "height:" number unit ";"
@@ -156,6 +160,11 @@ class HTMLCSSTransformer(Transformer):
         type_attr = items[0]
         style = items[1]
         return f'<input type={type_attr} style="{style}"/>'
+    
+    def text_area(self, items):
+        style = items[0]
+        content = items[1] if len(items) > 1 else ""
+        return f'<textarea style="{style}">{content}</textarea>'
 
     def input_text(self, children):
         return "text"
@@ -316,8 +325,23 @@ class HTMLCSSTransformer(Transformer):
     
     def color_rule(self, items):
         return f"color:{items[0]};"
+    
+    def text_align_rule(self, items):
+        return f"text-align:{items[0]};"
 
     # values
+
+    def text_align_left(self, _):
+        return "left"
+    
+    def text_align_right(self, _):
+        return "right"
+    
+    def text_align_center(self, _):
+        return "center"
+    
+    def text_align_justify(self, _):
+        return "justify"
 
     def number(self, chilren):
         return chilren[0]
@@ -367,16 +391,20 @@ class HTMLCSSCompiler(Compiler):
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--disable-extensions")
-        chrome_options.add_argument(f"--window-size={_SCREEN_WIDTH},{_SCREEN_HEIGHT}")
         chrome_options.add_argument("--blink-settings=imagesEnabled=false")
         self._driver = webdriver.Chrome(options=chrome_options)
         self._driver.get("about:blank")
+        self._driver.execute_script(f"document.body.style = 'margin: 0; padding: 0;'")
 
     def compile(self, expression: Tree):
         content = self._expression_to_html.transform(expression)
+        
+        self._driver.set_window_size(_SCREEN_WIDTH, _SCREEN_HEIGHT)
         self._driver.execute_script(f"document.body.innerHTML = '{content}'")
+        total_height = self._driver.execute_script("return Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight);")
+        self._driver.set_window_size(_SCREEN_WIDTH, total_height)
+        
         png = self._driver.get_screenshot_as_png()
-
         image = Image.open(io.BytesIO(png))
         if image.mode != "RGB":
             image = image.convert("RGB")
@@ -411,7 +439,6 @@ class HTMLCSSCompiler(Compiler):
 
     def __del__(self):
         self._driver.quit()
-
 
 def generate_believable_text():
     common_words = [

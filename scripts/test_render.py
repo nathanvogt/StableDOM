@@ -1,3 +1,4 @@
+import os
 import imgkit
 from IPython.display import display, Image
 import matplotlib.image as mpimg
@@ -5,42 +6,35 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 from PIL import Image as PILImage
 import numpy as np
+from td.environments.htmlcss import HTMLCSS
+from td.samplers.mutator import random_mutation
+from td.samplers import ConstrainedRandomSampler
 
-# Define your HTML and CSS
-html = """
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body {
-            background-color: lightblue;
-            font-size: 20px;
-            color: white;
-            text-align: center;
-        }
-    </style>
-</head>
-<body>
-    <h1>Welcome to My Page</h1>
-    <p>This is a sample paragraph in our webpage.</p>
-</body>
-</html>
-"""
+samples_dir = "/Users/nathanvogt/tree-diffusion/samples"
+sample = 2
+sample_path = os.path.join(samples_dir, f"sample_{sample}.html")
 
-# Convert HTML to an image and get the image in byte format
-img_raw = imgkit.from_string(html, False, options={"format": "png"})
-image = PILImage.open(BytesIO(img_raw))
+env = HTMLCSS()
+grammar = env.grammar
+compiler = env.compiler
+sampler = ConstrainedRandomSampler(grammar)
 
-if image.mode != "RGB":
-    image = image.convert("RGB")
+with open(sample_path, "r") as f:
+    sample_html = f.read()
+    sample_html = sample_html.replace("\n", "")
+img = env.compile(sample_html)
 
-desired_width = 800
-desired_height = 600
-image = image.resize((desired_width, desired_height))
+mutation = random_mutation(
+    sample_html, grammar, sampler
+)
+print(mutation)
+mutated_sample = mutation.apply(sample_html)
+mutated_img = env.compile(mutated_sample)
 
-image_np = np.array(image)
-print(image_np.shape)
-
-plt.imshow(image_np)
-plt.axis("off")
+# show both images side by side
+fig, ax = plt.subplots(1, 2)
+ax[0].imshow(img)
+ax[0].axis("off")
+ax[1].imshow(mutated_img)
+ax[1].axis("off")
 plt.show()
