@@ -7,7 +7,7 @@ from io import BytesIO
 from PIL import Image as PILImage
 import numpy as np
 from td.environments.htmlcss import HTMLCSS
-from td.samplers.mutator import random_mutation
+from td.samplers.mutator import random_mutation, forward_process_with_path
 from td.samplers import ConstrainedRandomSampler
 
 samples_dir = "/Users/nathanvogt/tree-diffusion/samples"
@@ -24,11 +24,11 @@ with open(sample_path, "r") as f:
     sample_html = sample_html.replace("\n", "")
 img = env.compile(sample_html)
 
-mutation = random_mutation(
-    sample_html, grammar, sampler
+mutated_sample, reverse_mutation = forward_process_with_path(
+    sample_html, num_steps=2, grammar=grammar, sampler=sampler, min_primitives=1,
+    max_primitives=8, path_max_primitives=8, selection_max_primitives=8, replacement_max_primitives=8, p_random=0.2
 )
-print(mutation)
-mutated_sample = mutation.apply(sample_html)
+print(reverse_mutation)
 mutated_img = env.compile(mutated_sample)
 
 # show both images side by side
