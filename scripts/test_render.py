@@ -11,7 +11,7 @@ from td.samplers.mutator import random_mutation, forward_process_with_path
 from td.samplers import ConstrainedRandomSampler
 
 samples_dir = "/Users/nathanvogt/tree-diffusion/samples"
-sample = 2
+sample = 1
 sample_path = os.path.join(samples_dir, f"sample_{sample}.html")
 
 env = HTMLCSS()

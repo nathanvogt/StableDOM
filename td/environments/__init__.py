@@ -1,25 +1,26 @@
-from .blockworld import Blockworld
-from .csg2d import CSG2D
-from .csg2dh import CSG2DH
-from .csg2da import CSG2DA
+# from .blockworld import Blockworld
+# from .csg2d import CSG2D
+# from .csg2dh import CSG2DH
+# from .csg2da import CSG2DA
 from .environment import Environment
-from .nanosvg import NanoSVG
-from .rainbow import Rainbow
-from .tinysvg import TinySVG
-from .tinysvgoffset import TinySVGOffset
-from .webdev import HTML
+
+# from .nanosvg import NanoSVG
+# from .rainbow import Rainbow
+# from .tinysvg import TinySVG
+# from .tinysvgoffset import TinySVGOffset
+# from .webdev import HTML
 from .htmlcss import HTMLCSS
 
 environments = {
-    Blockworld.name(): Blockworld,
-    Rainbow.name(): Rainbow,
-    TinySVG.name(): TinySVG,
-    NanoSVG.name(): NanoSVG,
-    CSG2D.name(): CSG2D,
-    CSG2DH.name(): CSG2DH,
-    TinySVGOffset.name(): TinySVGOffset,
-    CSG2DA.name(): CSG2DA,
-    HTML.name(): HTML,
+    # Blockworld.name(): Blockworld,
+    # Rainbow.name(): Rainbow,
+    # TinySVG.name(): TinySVG,
+    # NanoSVG.name(): NanoSVG,
+    # CSG2D.name(): CSG2D,
+    # CSG2DH.name(): CSG2DH,
+    # TinySVGOffset.name(): TinySVGOffset,
+    # CSG2DA.name(): CSG2DA,
+    # HTML.name(): HTML,
     HTMLCSS.name(): HTMLCSS,
 }
 

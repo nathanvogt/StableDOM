@@ -1,7 +1,7 @@
 import random
 from typing import List, NamedTuple
 
-import iceberg as ice
+# import iceberg as ice
 import numpy as np
 import torch
 import tqdm
@@ -288,80 +288,80 @@ class AREvaluator(object):
             )
 
 
-def _scene_leaves_and_centers(scene: ice.Drawable):
-    leaves = scene.find_all(lambda d: len(d.children) == 0)
-    leaf_bounds = [scene.child_bounds(leaf).center for leaf in leaves]
+# def _scene_leaves_and_centers(scene: ice.Drawable):
+#     leaves = scene.find_all(lambda d: len(d.children) == 0)
+#     leaf_bounds = [scene.child_bounds(leaf).center for leaf in leaves]
 
-    return leaves, np.array(leaf_bounds)
-
-
-def _get_scene(env: Environment, expression: str):
-    return env.compiler._expression_to_iceberg.transform(env.grammar.parse(expression))
+#     return leaves, np.array(leaf_bounds)
 
 
-def _expression_subset(expression: str, ice_objects: List[ice.Drawable]):
-    return [
-        expression[o._lark_meta.start_pos : o._lark_meta.end_pos] for o in ice_objects
-    ]
+# def _get_scene(env: Environment, expression: str):
+#     return env.compiler._expression_to_iceberg.transform(env.grammar.parse(expression))
 
 
-def semantic_scene_distance(
-    env: Environment, tokenizer: Tokenizer, expressionA: str, expressionB: str
-) -> int:
-    """Get the number of "tokens" that are different between two scenes. This will only work with very specialized environments.
-    Specifically, we need the environment to have a compiler that can transform an expression into an iceberg scene. And each iceberg object must have
-    a `_lark_meta` attribute that contains the start and end position of the object in the original expression. This is used to extract the object from the expression.
+# def _expression_subset(expression: str, ice_objects: List[ice.Drawable]):
+#     return [
+#         expression[o._lark_meta.start_pos : o._lark_meta.end_pos] for o in ice_objects
+#     ]
 
-    Args:
-        env (Environment): The environment that contains the compiler and grammar.
-        tokenizer (Tokenizer): The tokenizer used to tokenize the expressions.
-        expressionA (str): The first expression.
-        expressionB (str): The second expression.
 
-    Returns:
-        int: The number of tokens that are different between the two scenes.
-    """
+# def semantic_scene_distance(
+#     env: Environment, tokenizer: Tokenizer, expressionA: str, expressionB: str
+# ) -> int:
+#     """Get the number of "tokens" that are different between two scenes. This will only work with very specialized environments.
+#     Specifically, we need the environment to have a compiler that can transform an expression into an iceberg scene. And each iceberg object must have
+#     a `_lark_meta` attribute that contains the start and end position of the object in the original expression. This is used to extract the object from the expression.
 
-    sceneA = _get_scene(env, expressionA)
-    sceneB = _get_scene(env, expressionB)
+#     Args:
+#         env (Environment): The environment that contains the compiler and grammar.
+#         tokenizer (Tokenizer): The tokenizer used to tokenize the expressions.
+#         expressionA (str): The first expression.
+#         expressionB (str): The second expression.
 
-    sceneA_objects, sceneA_centers = _scene_leaves_and_centers(sceneA)
-    sceneB_objects, sceneB_centers = _scene_leaves_and_centers(sceneB)
+#     Returns:
+#         int: The number of tokens that are different between the two scenes.
+#     """
 
-    sceneA_objects = _expression_subset(expressionA, sceneA_objects)
-    sceneB_objects = _expression_subset(expressionB, sceneB_objects)
+#     sceneA = _get_scene(env, expressionA)
+#     sceneB = _get_scene(env, expressionB)
 
-    cost_matrix = np.zeros((len(sceneA_objects), len(sceneB_objects)))
-    for i, centerA in enumerate(sceneA_centers):
-        for j, centerB in enumerate(sceneB_centers):
-            cost_matrix[i, j] = ((centerA - centerB) ** 2).sum()
+#     sceneA_objects, sceneA_centers = _scene_leaves_and_centers(sceneA)
+#     sceneB_objects, sceneB_centers = _scene_leaves_and_centers(sceneB)
 
-    row_ind, col_ind = linear_sum_assignment(cost_matrix)
+#     sceneA_objects = _expression_subset(expressionA, sceneA_objects)
+#     sceneB_objects = _expression_subset(expressionB, sceneB_objects)
 
-    total_cost = 0
+#     cost_matrix = np.zeros((len(sceneA_objects), len(sceneB_objects)))
+#     for i, centerA in enumerate(sceneA_centers):
+#         for j, centerB in enumerate(sceneB_centers):
+#             cost_matrix[i, j] = ((centerA - centerB) ** 2).sum()
 
-    unmatched_objects = []
-    # Find number of objects that were not matched.
-    for i in range(len(sceneA_objects)):
-        if i not in row_ind:
-            unmatched_objects.append(sceneA_objects[i])
+#     row_ind, col_ind = linear_sum_assignment(cost_matrix)
 
-    for j in range(len(sceneB_objects)):
-        if j not in col_ind:
-            unmatched_objects.append(sceneB_objects[j])
+#     total_cost = 0
 
-    total_cost += sum(len(tokenizer._tokenize_one(o)) for o in unmatched_objects)
+#     unmatched_objects = []
+#     # Find number of objects that were not matched.
+#     for i in range(len(sceneA_objects)):
+#         if i not in row_ind:
+#             unmatched_objects.append(sceneA_objects[i])
 
-    for i, j in zip(row_ind, col_ind):
-        tokenized_i = tokenizer._tokenize_one(sceneA_objects[i])
-        tokenized_j = tokenizer._tokenize_one(sceneB_objects[j])
+#     for j in range(len(sceneB_objects)):
+#         if j not in col_ind:
+#             unmatched_objects.append(sceneB_objects[j])
 
-        # How many tokens are different between the two objects. Their length is not necessarily the same.
-        total_cost += abs(len(tokenized_i) - len(tokenized_j))
+#     total_cost += sum(len(tokenizer._tokenize_one(o)) for o in unmatched_objects)
 
-        # Count number of tokens.
-        trim_length = min(len(tokenized_i), len(tokenized_j))
+#     for i, j in zip(row_ind, col_ind):
+#         tokenized_i = tokenizer._tokenize_one(sceneA_objects[i])
+#         tokenized_j = tokenizer._tokenize_one(sceneB_objects[j])
 
-        total_cost += np.sum(tokenized_i[:trim_length] != tokenized_j[:trim_length])
+#         # How many tokens are different between the two objects. Their length is not necessarily the same.
+#         total_cost += abs(len(tokenized_i) - len(tokenized_j))
 
-    return total_cost
+#         # Count number of tokens.
+#         trim_length = min(len(tokenized_i), len(tokenized_j))
+
+#         total_cost += np.sum(tokenized_i[:trim_length] != tokenized_j[:trim_length])
+
+#     return total_cost
