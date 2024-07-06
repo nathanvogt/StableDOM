@@ -40,6 +40,7 @@ flags.DEFINE_integer("sample_max_primitives", 32, "Maximum number of primitives"
 flags.DEFINE_integer("selection_max_primitives", 16, "Maximum number of primitives")
 flags.DEFINE_integer("replacement_max_primitives", 16, "Maximum number of primitives")
 flags.DEFINE_integer("path_max_primitives", 8, "Maximum number of primitives")
+flags.DEFINE_float("premade_sample_mix", 0.0, "Probability of using a pre-made sample")
 flags.DEFINE_integer("n_layers", 6, "Number of layers")
 flags.DEFINE_integer("d_model", 512, "Model dimension")
 flags.DEFINE_integer("num_heads", 32, "Number of heads")
@@ -129,6 +130,7 @@ def main(argv):
         sample_max_primitives=FLAGS.sample_max_primitives,
         selection_max_primitives=FLAGS.selection_max_primitives,
         replacement_max_primitives=FLAGS.replacement_max_primitives,
+        premade_sample_mix=FLAGS.premade_sample_mix,
     )
 
     random.seed(1)
@@ -165,11 +167,13 @@ def main(argv):
         "current_observation": FLAGS.current_observation,
         "current_image": FLAGS.current_image,
         "random_mix": FLAGS.random_mix,
+        "premade_sample_mix": FLAGS.premade_sample_mix,
     }
 
     if FLAGS.wandb:
+        wandb.login(key="0acc63549fa1187303a58b184767ca5e5ecba44f")
         wandb.init(
-            project="stabledom2",
+            project="stabledom3",
             config=config,
         )
 
@@ -242,6 +246,7 @@ def main(argv):
         target_observation=FLAGS.target_observation,
         current_observation=FLAGS.current_observation,
         random_mix=FLAGS.random_mix,
+        premade_sample_mix=FLAGS.premade_sample_mix,
     )
 
     dataloader = DataLoader(dataset, batch_size=None, num_workers=FLAGS.num_workers)

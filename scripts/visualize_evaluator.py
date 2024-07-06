@@ -55,6 +55,7 @@ def print_some_batches(batch_size):
         target_observation=False,
         current_observation=False,
         random_mix=0.2,
+        premade_sample_mix=1.0
     )
     start_time = time.time()
     batch = next(iter(dataset))

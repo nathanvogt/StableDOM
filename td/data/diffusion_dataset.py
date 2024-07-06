@@ -14,6 +14,17 @@ from td.samplers.mutator import (
     forward_process_with_guards,
     forward_process_with_path,
 )
+import os
+
+def get_premade_sample():
+    samples_dir = "/Users/nathanvogt/tree-diffusion/samples"
+    files = os.listdir(samples_dir)
+    sample = random.choice(files)
+    sample_path = os.path.join(samples_dir, sample)
+    with open(sample_path, "r") as f:
+        sample_html = f.read()
+        sample_html = sample_html.replace("\n", "")
+    return sample_html
 
 
 class TreeDiffusionDataset(IterableDataset):
@@ -35,6 +46,7 @@ class TreeDiffusionDataset(IterableDataset):
         selection_max_primitives=None,  # max size selected for mutation
         replacement_max_primitives=None,  # max size of mutation replacement
         path_max_primitives=None,  # max mutations each path step
+        premade_sample_mix=0 # probability of using a pre-made sample (instead of randomly sampling a program)
     ):
         self._env = None
         self._env_name = env_name
@@ -53,11 +65,14 @@ class TreeDiffusionDataset(IterableDataset):
         self._target_observation = target_observation
         self._current_observation = current_observation
         self._random_mix = random_mix
+        self._premade_sample_mix = premade_sample_mix
 
     def _produce_batch(self):
         try:
 
             def sample_fn():
+                if random.random() < self._premade_sample_mix:
+                    return get_premade_sample()
                 return self._sampler.sample(
                     self._env.grammar.sample_start_symbol,
                     min_primitives=self._sample_min_primitives,

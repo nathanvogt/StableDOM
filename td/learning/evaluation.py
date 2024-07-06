@@ -1,3 +1,4 @@
+import os
 import random
 from typing import List, NamedTuple
 
@@ -13,6 +14,17 @@ from td.learning.constrained_decoding import sample_model_kv, ar_decoder
 from td.learning.tokenizer import Tokenizer
 from td.samplers import ConstrainedRandomSampler
 from td.samplers.mutator import random_mutation
+
+def get_premade_sample():
+    samples_dir = "/Users/nathanvogt/tree-diffusion/samples"
+    files = os.listdir(samples_dir)
+    sample = random.choice(files)
+    sample_path = os.path.join(samples_dir, sample)
+    with open(sample_path, "r") as f:
+        sample_html = f.read()
+        sample_html = sample_html.replace("\n", "")
+    return sample_html
+
 
 
 class OneStepEvaluator(object):
@@ -35,6 +47,7 @@ class OneStepEvaluator(object):
         device: str = "cpu",
         target_observation: bool = False,
         non_empty: bool = True,
+        premade_sample_mix: float = 0.0,
     ):
         self._env = env
         self._tokenizer = tokenizer
@@ -44,10 +57,14 @@ class OneStepEvaluator(object):
         self._target_observation = target_observation
         self._non_empty = non_empty
         self._device = device
+        self._premade_sample_mix = premade_sample_mix   
 
         random.seed(seed)
 
         def sample_fn():
+            if random.random() < self._premade_sample_mix:
+                return get_premade_sample()
+
             sample = sampler.sample(
                 env.grammar.sample_start_symbol,
                 min_primitives=sample_min_primitives,

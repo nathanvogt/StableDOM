@@ -426,14 +426,11 @@ class HTMLCSSCompiler(Compiler):
 
     def compile(self, expression: Tree):
         content = self._expression_to_html.transform(expression)
-        
-        self._driver.set_window_size(_SCREEN_WIDTH, _SCREEN_HEIGHT)
-        
+                
         self._driver.execute_script(f"document.body.innerHTML = '{content}'")
         
-        total_width = self._driver.execute_script("return Math.max(document.body.scrollWidth, document.body.offsetWidth, document.documentElement.clientWidth, document.documentElement.scrollWidth, document.documentElement.offsetWidth);") * 1.1
-        total_height = self._driver.execute_script("return Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight);") * 1.1
-        
+        total_width = self._driver.execute_script("return Math.max(document.body.scrollWidth, document.body.offsetWidth, document.documentElement.clientWidth, document.documentElement.scrollWidth, document.documentElement.offsetWidth);")
+        total_height = self._driver.execute_script("return Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight);")
         self._driver.set_window_size(total_width, total_height)
         
         png = self._driver.get_screenshot_as_png()
