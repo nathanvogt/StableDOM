@@ -18,26 +18,29 @@ import random
 grammar_spec = r"""
 start: content | style
 content: element*
-element: div | span | p | h1 | h2 | h3 | h4 | h5 | h6 | form | input | button | text_area
+element: TXT | div | span | p | h1 | h2 | h3 | h4 | h5 | h6 | form | input | button | text_area | label | ul | li
 
 # elements
-div: "<div" "style=" style ">" (content | TXT)? "</div>"
-span: "<span" "style=" style ">" (content | TXT)? "</span>"
-p: "<p" "style=" style ">" (content | TXT)? "</p>"
-h1: "<h1" "style=" style ">" (content | TXT)? "</h1>"
-h2: "<h2" "style=" style ">" (content | TXT)? "</h2>"
-h3: "<h3" "style=" style ">" (content | TXT)? "</h3>"
-h4: "<h4" "style=" style ">" (content | TXT)? "</h4>"
-h5: "<h5" "style=" style ">" (content | TXT)? "</h5>"
-h6: "<h6" "style=" style ">" (content | TXT)? "</h6>"
-form: "<form" "style=" style ">" (content | TXT)? "</form>"
-text_area: "<textarea" "style=" style ">" (content | TXT)? "</textarea>"
+div: "<div" "style=" style ">" (content)? "</div>"
+span: "<span" "style=" style ">" (content)? "</span>"
+p: "<p" "style=" style ">" (content)? "</p>"
+h1: "<h1" "style=" style ">" (content)? "</h1>"
+h2: "<h2" "style=" style ">" (content)? "</h2>"
+h3: "<h3" "style=" style ">" (content)? "</h3>"
+h4: "<h4" "style=" style ">" (content)? "</h4>"
+h5: "<h5" "style=" style ">" (content)? "</h5>"
+h6: "<h6" "style=" style ">" (content)? "</h6>"
+form: "<form" "style=" style ">" (content)? "</form>"
+text_area: "<textarea" "style=" style ">" (content)? "</textarea>"
+label: "<label" "style=" style ">" (content)? "</label>"
+ul: "<ul" "style=" style ">" (content)? "</ul>"
+li: "<li" "style=" style ">" (content)? "</li>"
 
 input: "<input" "type=" "\"" input_type "\"" "style=" style "/>"
 # TODO: 'number' is causing a conflict with the number rule when converting to string (I think there)
-input_type: "text" -> input_text | "password" -> input_password | "email" -> input_email | "number" -> input_number | "date" -> input_date | "checkbox" -> input_checkbox | "radio" -> input_radio
+input_type: "text" -> input_text | "password" -> input_password | "email" -> input_email | "number" -> input_number | "date" -> input_date | "checkbox" -> input_checkbox | "radio" -> input_radio | "submit" -> input_submit
 
-button: "<button" "style=" style ">" (content | TXT)? "</button>"
+button: "<button" "style=" style ">" (content)? "</button>"
 
 # css
 style: "\"" css_rule* "\""
@@ -69,10 +72,11 @@ padding_bottom_rule: "padding-bottom:" number unit ";"
 padding_left_rule: "padding-left:" number unit ";"
 padding_right_rule: "padding-right:" number unit ";"
 
-margin_top_rule: "margin-top:" number unit ";"
-margin_bottom_rule: "margin-bottom:" number unit ";"
-margin_left_rule: "margin-left:" number unit ";"
-margin_right_rule: "margin-right:" number unit ";"
+margin_value: "auto" | number unit
+margin_top_rule: "margin-top:" margin_value ";"
+margin_bottom_rule: "margin-bottom:" margin_value ";"
+margin_left_rule: "margin-left:" margin_value ";"
+margin_right_rule: "margin-right:" margin_value ";"
 
 border_radius_rule: "border-radius:" number unit ";"
 border_rule: "border:" number unit "solid" COLOR_VALUE ";"
@@ -165,6 +169,21 @@ class HTMLCSSTransformer(Transformer):
         style = items[0]
         content = items[1] if len(items) > 1 else ""
         return f'<textarea style="{style}">{content}</textarea>'
+    
+    def label(self, items):
+        style = items[0]
+        content = items[1] if len(items) > 1 else ""
+        return f'<label style="{style}">{content}</label>'
+    
+    def ul(self, items):
+        style = items[0]
+        content = "".join(items[1:])
+        return f'<ul style="{style}">{content}</ul>'
+    
+    def li(self, items):
+        style = items[0]
+        content = items[1] if len(items) > 1 else ""
+        return f'<li style="{style}">{content}</li>'
 
     def input_text(self, children):
         return "text"
@@ -186,6 +205,9 @@ class HTMLCSSTransformer(Transformer):
 
     def input_radio(self, children):
         return "radio"
+    
+    def input_submit(self, children):
+        return "submit"
 
     def button(self, items):
         style = items[0]
@@ -311,17 +333,23 @@ class HTMLCSSTransformer(Transformer):
     def padding_right_rule(self, items):
         return f"padding-right:{items[0]}{items[1]};"
     
+    def margin_value(self, items):
+        if len(items) == 0:
+            return "auto"
+        return f"{items[0]}{items[1]}"
+    
     def margin_top_rule(self, items):
-        return f"margin-top:{items[0]}{items[1]};"
-
+        return f"margin-top:{items[0]};"
+    
     def margin_bottom_rule(self, items):
-        return f"margin-bottom:{items[0]}{items[1]};"
-
+        return f"margin-bottom:{items[0]};"
+    
     def margin_left_rule(self, items):
-        return f"margin-left:{items[0]}{items[1]};"
-
+        return f"margin-left:{items[0]};"
+    
     def margin_right_rule(self, items):
-        return f"margin-right:{items[0]}{items[1]};"
+        return f"margin-right:{items[0]};"
+    
     
     def color_rule(self, items):
         return f"color:{items[0]};"
