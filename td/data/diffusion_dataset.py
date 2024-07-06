@@ -130,20 +130,12 @@ class TreeDiffusionDataset(IterableDataset):
                 )
                 for expression, _ in training_examples
             ]
-            # for i in range(len(target_expressions)):
-            #     print("Target:  ", target_expressions[i])
-            #     print("\n")
-            #     print("Training:", training_examples[i][0])
-            #     print("\n\n")
         except Exception as e:
             print("Restarting")
-            # logging.warning(f"Failed to compile: {e}")
-            # logging.exception(e)
             return self._produce_batch()
         tokenized = []
         context_tokens_mask = []
         for mutated_expression, reverse_mutation in training_examples:
-            # print(f"Mutation: {reverse_mutation}")
             context_tokens, positions = self._tokenizer._tokenize_one(
                 mutated_expression, translate_positions=True
             )
