@@ -173,7 +173,7 @@ def main(argv):
     if FLAGS.wandb:
         wandb.login(key="0acc63549fa1187303a58b184767ca5e5ecba44f")
         run = wandb.init(
-            project="stabledom_test",
+            project="stabledom4",
             config=config,
         )
 
