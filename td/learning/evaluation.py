@@ -86,7 +86,12 @@ class OneStepEvaluator(object):
             if target_observation
             else self._target_images
         )
-        self._target_images_observation_torch = None
+        self._target_images_observation_torch = (
+            torch.tensor(self._target_images_observation)
+            .float()
+            .permute(0, 3, 1, 2)
+            # .to(device)
+        )
 
         self._mutations = [
             random_mutation(
@@ -108,12 +113,7 @@ class OneStepEvaluator(object):
         try:
             predicted_reverse_mutations = []
 
-            self._target_images_observation_torch = (
-                torch.tensor(self._target_images_observation)
-                .float()
-                .permute(0, 3, 1, 2)
-                .to(self._device)
-            )
+            target_images_observation_torch = self._target_images_observation_torch.to(self._device)
 
             for i in tqdm.trange(
                 0,
@@ -124,7 +124,7 @@ class OneStepEvaluator(object):
                 batch_mutated_expressions = self._current_expressions[
                     i : i + self._evaluation_batch_size
                 ]
-                batch_target_images = self._target_images_observation_torch[
+                batch_target_images = target_images_observation_torch[
                     i : i + self._evaluation_batch_size
                 ]
 
@@ -139,9 +139,9 @@ class OneStepEvaluator(object):
 
                 predicted_reverse_mutations.extend(batch_predicted_reverse_mutations)
 
-            del self._target_images_observation_torch
-            self._target_images_observation_torch = None
-            torch.cuda.empty_cache()
+            if self._device == "cuda":
+                del target_images_observation_torch
+                torch.cuda.empty_cache
 
             total_goal_reached = 0
             error_count = 0
