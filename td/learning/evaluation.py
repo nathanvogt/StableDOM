@@ -16,7 +16,7 @@ from td.samplers import ConstrainedRandomSampler
 from td.samplers.mutator import random_mutation
 
 def get_premade_sample():
-    samples_dir = "/Users/nathanvogt/tree-diffusion/samples"
+    samples_dir = "samples"
     files = os.listdir(samples_dir)
     sample = random.choice(files)
     sample_path = os.path.join(samples_dir, sample)

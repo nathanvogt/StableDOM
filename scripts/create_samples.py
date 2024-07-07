@@ -7,7 +7,7 @@ openai_client = OpenAI(
     api_key=''
 )
 
-samples_dir = "/Users/nathanvogt/tree-diffusion/samples"
+samples_dir = "samples"
 bad_samples_dir = "/Users/nathanvogt/tree-diffusion/bad_samples"
 
 def get_random_theme():
