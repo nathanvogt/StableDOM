@@ -395,9 +395,6 @@ class HTMLCSSTransformer(Transformer):
     def percent(self, children):
         return "%"
 
-    def ESCAPED_STRING(self, token):
-        return token.value
-
     def SIGNED_NUMBER(self, token):
         return token.value
 
@@ -664,11 +661,9 @@ class HTMLCSS(Environment):
             sample_start="element",
             primitives=["element", "css_rule"],
             terminal_name_to_vocab={
-                "WORD": string.ascii_letters + "-",
                 "SIGNED_NUMER": string.digits + ".",
                 "COLOR_VALUE": string.hexdigits + "#",
                 "TXT": string.printable,
-                "ESCAPED_STRING": string.printable,
             },
             terminal_to_custom_sampler={
                 Terminal("TXT"): generate_believable_text,
