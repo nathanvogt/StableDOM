@@ -172,8 +172,8 @@ def main(argv):
 
     if FLAGS.wandb:
         wandb.login(key="0acc63549fa1187303a58b184767ca5e5ecba44f")
-        wandb.init(
-            project="stabledom3",
+        run = wandb.init(
+            project="stabledom-test",
             config=config,
         )
 
@@ -210,6 +210,17 @@ def main(argv):
             logging.info(
                 f"Loaded checkpoint from {checkpoint_filename}, starting at step {step}"
             )
+
+    
+    if FLAGS.resume_from:
+        api = wandb.Api()
+        artifact = api.artifact(f"stabledom3/{FLAGS.resume_from}:latest")
+        artifact_dir = artifact.download()
+        checkpoint_path = os.path.join(artifact_dir, "model.pt")
+        state = torch.load(checkpoint_path)
+        model.load_state_dict(state['model'])
+        step = state['step']
+        logging.info(f"Loaded checkpoint from wandb, starting at step {step}")
 
     optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.learning_rate)
 
@@ -302,26 +313,32 @@ def main(argv):
             model.train()
 
         if (
-            checkpoint_dir
-            and FLAGS.checkpoint_steps > 0
+            FLAGS.checkpoint_steps > 0
             and step % FLAGS.checkpoint_steps == FLAGS.checkpoint_steps - 1
         ):
-            checkpoint_filename = os.path.join(
-                checkpoint_dir, f"{env_name}_step_{step + 1}.pt"
-            )
-            if os.path.exists(checkpoint_filename):
-                logging.warning(
-                    f"Checkpoint file {checkpoint_filename} already exists, skipping."
-                )
-            else:
-                with open(checkpoint_filename, "wb") as f:
-                    pickle.dump({"model": model.state_dict(), "config": config}, f)
-                logging.info(f"Checkpointed state to {checkpoint_filename}")
+            checkpoint = {
+                "model": model.state_dict(),
+                "config": config,
+                "step": step + 1
+            }
+            checkpoint_path = f"/tmp/{FLAGS.env}_step_{step + 1}.pt"
+            torch.save(checkpoint, checkpoint_path)
+            
+            if FLAGS.wandb:
+                artifact = wandb.Artifact(f"model-checkpoint-{step + 1}", type="model")
+                artifact.add_file(checkpoint_path)
+                run.log_artifact(artifact)
+                logging.info(f"Checkpointed state to wandb at step {step + 1}")
+            
+            os.remove(checkpoint_path)  # Remove the temporary file
 
         step += 1
 
         if FLAGS.training_steps > 0 and step >= FLAGS.training_steps:
             break
+    
+    if FLAGS.wandb:
+        run.finish()
 
 
 if __name__ == "__main__":

@@ -349,17 +349,6 @@ def batched_beam_search(
                         (new_expression, value_so_far + mutation.position_logprob)
                     )
 
-            # queue_expressions = [x[0] for x in new_queue]
-            # queue_compiled = np.array([env.compile(x) for x in queue_expressions])
-            # queue_compiled_torch = (
-            #     torch.tensor(queue_compiled).float().permute(0, 3, 1, 2).to(device)
-            # )
-            # values = compute_value(
-            #     batched_target_image[: len(queue_compiled_torch)],
-            #     queue_compiled_torch,
-            # ).squeeze(-1)
-            # new_queue = [(x[0], values[i]) for i, x in enumerate(new_queue)]
-
             queue = sorted(new_queue, key=lambda x: -x[1])
             expansions += len(queue)
             depth += 1
