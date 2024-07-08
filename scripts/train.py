@@ -126,10 +126,10 @@ def main(argv):
         device=FLAGS.device,
         evaluation_batch_size=FLAGS.batch_size,
         target_observation=FLAGS.target_observation,
-        # sample_min_primitives=FLAGS.sample_min_primitives,
-        # sample_max_primitives=FLAGS.sample_max_primitives,
-        # selection_max_primitives=FLAGS.selection_max_primitives,
-        # replacement_max_primitives=FLAGS.replacement_max_primitives,
+        sample_min_primitives=FLAGS.sample_min_primitives,
+        sample_max_primitives=FLAGS.sample_max_primitives,
+        selection_max_primitives=FLAGS.selection_max_primitives,
+        replacement_max_primitives=FLAGS.replacement_max_primitives,
         premade_sample_mix=FLAGS.premade_sample_mix,
     )
 
