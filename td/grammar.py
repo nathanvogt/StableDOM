@@ -79,7 +79,7 @@ class Grammar(object):
         custom_vocab = []
         for k, v in self._terminal_name_to_vocab.items():
             custom_vocab.extend(v)
-            terminal_map[k] = v[0]  # not sure if this causes problems
+            #terminal_map[k] = v[0]  # not sure if this causes problems
 
         nonterminals = {}
         for rule in rules:
@@ -93,8 +93,15 @@ class Grammar(object):
             }
         ):
             allowed_rules = {*terminal_map, *nonterminals}
+
+        rev_terminal_map = {v: k for k, v in terminal_map.items()}
+        # add custom vocab to terminal map
+        for k, v in self._terminal_name_to_vocab.items():
+            for val in v:
+                rev_terminal_map[val] = k
+
         self._terminal_map = terminal_map
-        self._rev_terminal_map = {v: k for k, v in terminal_map.items()}
+        self._rev_terminal_map = rev_terminal_map
         self._nonterminals = nonterminals
         self._names_to_symbols = names_to_symbols
 

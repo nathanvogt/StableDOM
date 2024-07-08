@@ -9,6 +9,7 @@ import tqdm
 from absl import logging
 from scipy.optimize import linear_sum_assignment
 
+from td.environments.htmlcss import clean_html_whitespace
 from td.environments import Environment
 from td.learning.constrained_decoding import sample_model_kv, ar_decoder
 from td.learning.tokenizer import Tokenizer
@@ -23,6 +24,7 @@ def get_premade_sample():
     with open(sample_path, "r") as f:
         sample_html = f.read()
         sample_html = sample_html.replace("\n", "")
+        sample_html = clean_html_whitespace(sample_html)
     return sample_html
 
 

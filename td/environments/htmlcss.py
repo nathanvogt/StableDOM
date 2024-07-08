@@ -17,34 +17,32 @@ import random
 
 grammar_spec = r"""
 start: content | style
-content: element*
-element: TXT | div | span | p | h1 | h2 | h3 | h4 | h5 | h6 | form | input | button | text_area | label | ul | li
+#give priority so that text doesn't get parsed as a style (e.g. having 'vw' in text)
+content: (txt | element)+
+element: div | span | p | h1 | h2 | h3 | h4 | h5 | h6 | form | input | button | text_area | label | ul | li
 
 # elements
-div: "<div" "style=" style ">" (content)? "</div>"
-span: "<span" "style=" style ">" (content)? "</span>"
-p: "<p" "style=" style ">" (content)? "</p>"
-h1: "<h1" "style=" style ">" (content)? "</h1>"
-h2: "<h2" "style=" style ">" (content)? "</h2>"
-h3: "<h3" "style=" style ">" (content)? "</h3>"
-h4: "<h4" "style=" style ">" (content)? "</h4>"
-h5: "<h5" "style=" style ">" (content)? "</h5>"
-h6: "<h6" "style=" style ">" (content)? "</h6>"
-form: "<form" "style=" style ">" (content)? "</form>"
-text_area: "<textarea" "style=" style ">" (content)? "</textarea>"
-label: "<label" "style=" style ">" (content)? "</label>"
-ul: "<ul" "style=" style ">" (content)? "</ul>"
-li: "<li" "style=" style ">" (content)? "</li>"
+div: "<div" " " "style=" style ">" (content)? "</div>"
+span: "<span" " " "style=" style ">" (content)? "</span>"
+p: "<p" " " "style=" style ">" (content)? "</p>"
+h1: "<h1" " " "style=" style ">" (content)? "</h1>"
+h2: "<h2" " " "style=" style ">" (content)? "</h2>"
+h3: "<h3" " " "style=" style ">" (content)? "</h3>"
+h4: "<h4" " " "style=" style ">" (content)? "</h4>"
+h5: "<h5" " " "style=" style ">" (content)? "</h5>"
+h6: "<h6" " " "style=" style ">" (content)? "</h6>"
+form: "<form" " " "style=" style ">" (content)? "</form>"
+text_area: "<textarea" " " "style=" style ">" (content)? "</textarea>"
+label: "<label" " " "style=" style ">" (content)? "</label>"
+ul: "<ul" " " "style=" style ">" (content)? "</ul>"
+li: "<li" " " "style=" style ">" (content)? "</li>"
+button: "<button" " " "style=" style ">" (content)? "</button>"
 
-input: "<input" "type=" "\"" input_type "\"" "style=" style "/>"
-# TODO: 'number' is causing a conflict with the number rule when converting to string (I think there)
+input: "<input" " " "type=" "\"" input_type "\"" " " "style=" style "/>"
 input_type: "text" -> input_text | "password" -> input_password | "email" -> input_email | "number" -> input_number | "date" -> input_date | "checkbox" -> input_checkbox | "radio" -> input_radio | "submit" -> input_submit
-
-button: "<button" "style=" style ">" (content)? "</button>"
 
 # css
 style: "\"" css_rule* "\""
-
 css_rule: width_rule | height_rule | display_rule | border_radius_rule | border_rule | background_rule | flex_direction_rule | justify_content_rule | flex_wrap_rule | align_items_rule | align_content_rule | padding_top_rule | padding_bottom_rule | padding_left_rule | padding_right_rule | margin_top_rule | margin_bottom_rule | margin_left_rule | margin_right_rule | color_rule | text_align_rule
 
 text_align_rule: "text-align:" text_align_value ";"
@@ -79,21 +77,28 @@ margin_left_rule: "margin-left:" margin_value ";"
 margin_right_rule: "margin-right:" margin_value ";"
 
 border_radius_rule: "border-radius:" number unit ";"
-border_rule: "border:" number unit "solid" COLOR_VALUE ";"
+border_rule: "border:" number unit " solid " color_value ";"
 
-background_rule: "background:" COLOR_VALUE ";"
+background_rule: "background:" color_value ";"
 
-color_rule: "color:" COLOR_VALUE ";"
+color_rule: "color:" color_value ";"
+
+# TXT rules (include unit because it gets parsed that way e.g. 1px in txt)
+txt: (unit | digit | letter | symbol | whitespace)+
+letter: lowercase | uppercase
+lowercase: "a" -> lower_a | "b" -> lower_b | "c" -> lower_c | "d" -> lower_d | "e" -> lower_e | "f" -> lower_f | "g" -> lower_g | "h" -> lower_h | "i" -> lower_i | "j" -> lower_j | "k" -> lower_k | "l" -> lower_l | "m" -> lower_m | "n" -> lower_n | "o" -> lower_o | "p" -> lower_p | "q" -> lower_q | "r" -> lower_r | "s" -> lower_s | "t" -> lower_t | "u" -> lower_u | "v" -> lower_v | "w" -> lower_w | "x" -> lower_x | "y" -> lower_y | "z" -> lower_z
+uppercase: "A" -> upper_a | "B" -> upper_b | "C" -> upper_c | "D" -> upper_d | "E" -> upper_e | "F" -> upper_f | "G" -> upper_g | "H" -> upper_h | "I" -> upper_i | "J" -> upper_j | "K" -> upper_k | "L" -> upper_l | "M" -> upper_m | "N" -> upper_n | "O" -> upper_o | "P" -> upper_p | "Q" -> upper_q | "R" -> upper_r | "S" -> upper_s | "T" -> upper_t | "U" -> upper_u | "V" -> upper_v | "W" -> upper_w | "X" -> upper_x | "Y" -> upper_y | "Z" -> upper_z
+symbol: "$" -> symbol_dollar | "&" -> symbol_ampersand | "(" -> symbol_lparen | ")" -> symbol_rparen | "*" -> symbol_asterisk | "+" -> symbol_plus | "," -> symbol_comma | "-" -> symbol_minus | "." -> symbol_period | "/" -> symbol_slash | ":" -> symbol_colon | "<" -> symbol_lt | "=" -> symbol_eq | ">" -> symbol_gt | "?" -> symbol_question | "@" -> symbol_at | "[" -> symbol_lbracket | "\\" -> symbol_backslash | "]" -> symbol_rbracket | "^" -> symbol_caret | "_" -> symbol_underscore | "`" -> symbol_backtick | "{" -> symbol_lbrace | "|" -> symbol_pipe | "}" -> symbol_rbrace | "~" -> symbol_tilde | "!" -> symbol_exclamation | ";" -> symbol_semicolon | "©" -> symbol_copyright
+whitespace: " " -> space | "\t" -> tab | "\n" -> newline | "\r" -> carriage_return
 
 # values
-number: SIGNED_NUMBER
+digit: "0" -> digit_0 | "1" -> digit_1 | "2" -> digit_2 | "3" -> digit_3 | "4" -> digit_4 | "5" -> digit_5 | "6" -> digit_6 | "7" -> digit_7 | "8" -> digit_8 | "9" -> digit_9
+number: digit+ (decimal_part)?
+decimal_part: "." digit+
 unit: "px" -> px | "em" -> em | "rem" -> rem | "vw" -> vw | "vh" -> vh | "%" -> percent
-TXT: /[^<>]+/
-COLOR_VALUE: /\#[0-9a-fA-F]{6}/
+color_value: "#" color_digit color_digit color_digit color_digit color_digit color_digit
+color_digit: digit | ("a" | "A") -> color_digit_a | ("b" | "B") -> color_digit_b | ("c" | "C") -> color_digit_c | ("d" | "D") -> color_digit_d | ("e" | "E") -> color_digit_e | ("f" | "F") -> color_digit_f
 
-%import common.SIGNED_NUMBER
-%import common.WS
-%ignore WS
 """
 
 _SCREEN_WIDTH = 1512 // 2
@@ -356,8 +361,200 @@ class HTMLCSSTransformer(Transformer):
     
     def text_align_rule(self, items):
         return f"text-align:{items[0]};"
+    
+    # updated values
+    def txt(self, items):
+        return "".join(items)
+
+    def letter(self, items):
+        return items[0]
+
+    def lowercase(self, items):
+        return items[0]
+
+    def uppercase(self, items):
+        return items[0]
+
+    def symbol(self, items):
+        return items[0]
+
+    def whitespace(self, items):
+        return items[0]
+
+    def digit(self, items):
+        return items[0]
+
+    def decimal_part(self, items):
+        return f".{''.join(items)}"
+
+    def number(self, items):
+        # clip the number to 3 digits (in front of the decimal point)
+        num_s = "".join(items)
+        num = float(num_s) % 1_000
+        if num.is_integer():
+            return str(int(num))
+        return str(num)
+
+        
+
+
+
+    def color_value(self, items):
+        return "#" + "".join(items)
+
+    def color_digit(self, items):
+        return items[0]
+    
+    # Lowercase letters
+    def lower_a(self, _): return "a"
+    def lower_b(self, _): return "b"
+    def lower_c(self, _): return "c"
+    def lower_d(self, _): return "d"
+    def lower_e(self, _): return "e"
+    def lower_f(self, _): return "f"
+    def lower_g(self, _): return "g"
+    def lower_h(self, _): return "h"
+    def lower_i(self, _): return "i"
+    def lower_j(self, _): return "j"
+    def lower_k(self, _): return "k"
+    def lower_l(self, _): return "l"
+    def lower_m(self, _): return "m"
+    def lower_n(self, _): return "n"
+    def lower_o(self, _): return "o"
+    def lower_p(self, _): return "p"
+    def lower_q(self, _): return "q"
+    def lower_r(self, _): return "r"
+    def lower_s(self, _): return "s"
+    def lower_t(self, _): return "t"
+    def lower_u(self, _): return "u"
+    def lower_v(self, _): return "v"
+    def lower_w(self, _): return "w"
+    def lower_x(self, _): return "x"
+    def lower_y(self, _): return "y"
+    def lower_z(self, _): return "z"
+
+    # Uppercase letters
+    def upper_a(self, _): return "A"
+    def upper_b(self, _): return "B"
+    def upper_c(self, _): return "C"
+    def upper_d(self, _): return "D"
+    def upper_e(self, _): return "E"
+    def upper_f(self, _): return "F"
+    def upper_g(self, _): return "G"
+    def upper_h(self, _): return "H"
+    def upper_i(self, _): return "I"
+    def upper_j(self, _): return "J"
+    def upper_k(self, _): return "K"
+    def upper_l(self, _): return "L"
+    def upper_m(self, _): return "M"
+    def upper_n(self, _): return "N"
+    def upper_o(self, _): return "O"
+    def upper_p(self, _): return "P"
+    def upper_q(self, _): return "Q"
+    def upper_r(self, _): return "R"
+    def upper_s(self, _): return "S"
+    def upper_t(self, _): return "T"
+    def upper_u(self, _): return "U"
+    def upper_v(self, _): return "V"
+    def upper_w(self, _): return "W"
+    def upper_x(self, _): return "X"
+    def upper_y(self, _): return "Y"
+    def upper_z(self, _): return "Z"
+
+    # symbols
+    def symbol_dollar(self, _): return "$"
+    def symbol_percent(self, _): return "%"
+    def symbol_ampersand(self, _): return "&"
+    def symbol_lparen(self, _): return "("
+    def symbol_rparen(self, _): return ")"
+    def symbol_asterisk(self, _): return "*"
+    def symbol_plus(self, _): return "+"
+    def symbol_comma(self, _): return ","
+    def symbol_minus(self, _): return "-"
+    def symbol_period(self, _): return "."
+    def symbol_slash(self, _): return "/"
+    def symbol_colon(self, _): return ":"
+    def symbol_lt(self, _): return "<"
+    def symbol_eq(self, _): return "="
+    def symbol_gt(self, _): return ">"
+    def symbol_question(self, _): return "?"
+    def symbol_at(self, _): return "@"
+    def symbol_lbracket(self, _): return "["
+    def symbol_backslash(self, _): return "\\"
+    def symbol_rbracket(self, _): return "]"
+    def symbol_caret(self, _): return "^"
+    def symbol_underscore(self, _): return "_"
+    def symbol_backtick(self, _): return "`"
+    def symbol_lbrace(self, _): return "{"
+    def symbol_pipe(self, _): return "|"
+    def symbol_rbrace(self, _): return "}"
+    def symbol_tilde(self, _): return "~"
+    def symbol_exclamation(self, _): return "!"
+    def symbol_semicolon(self, _): return ";"
+    def symbol_copyright(self, _): return "©"
+
+    # whitespace
+    def space(self, _):
+        return " "
+
+    def tab(self, _):
+        return "\t"
+
+    def newline(self, _):
+        return "\n"
+
+    def carriage_return(self, _):
+        return "\r"
 
     # values
+    
+    def color_digit_a(self, _):
+        return "a"
+    
+    def color_digit_b(self, _):
+        return "b"
+    
+    def color_digit_c(self, _):
+        return "c"
+    
+    def color_digit_d(self, _):
+        return "d"
+    
+    def color_digit_e(self, _):
+        return "e"
+    
+    def color_digit_f(self, _):
+        return "f"
+    
+    def digit_0(self, _):
+        return "0"
+    
+    def digit_1(self, _):
+        return "1"
+    
+    def digit_2(self, _):
+        return "2"
+    
+    def digit_3(self, _):
+        return "3"
+    
+    def digit_4(self, _):
+        return "4"
+    
+    def digit_5(self, _):
+        return "5"
+    
+    def digit_6(self, _):
+        return "6"
+    
+    def digit_7(self, _):
+        return "7"
+    
+    def digit_8(self, _):
+        return "8"
+    
+    def digit_9(self, _):
+        return "9"
 
     def text_align_left(self, _):
         return "left"
@@ -370,9 +567,6 @@ class HTMLCSSTransformer(Transformer):
     
     def text_align_justify(self, _):
         return "justify"
-
-    def number(self, chilren):
-        return chilren[0]
 
     def unit(self, children):
         return children[0]
@@ -394,15 +588,14 @@ class HTMLCSSTransformer(Transformer):
 
     def percent(self, children):
         return "%"
-
-    def SIGNED_NUMBER(self, token):
-        return token.value
-
-    def COLOR_VALUE(self, token):
-        return token.value
-
-    def TXT(self, token):
-        return token.value
+    
+    def signed_number(self, children):
+        number_str = ''.join(children)
+        number = float(number_str)
+        if number.is_integer():
+            return str(int(number))
+        else:
+            return f'{number:.10f}'.rstrip('0').rstrip('.')
 
 
 class HTMLCSSCompiler(Compiler):
@@ -420,14 +613,25 @@ class HTMLCSSCompiler(Compiler):
         self._driver = webdriver.Chrome(options=chrome_options)
         self._driver.get("about:blank")
         self._driver.execute_script("document.body.style = 'margin: 0; padding: 0;'")
-
     def compile(self, expression: Tree):
         content = self._expression_to_html.transform(expression)
-                
-        self._driver.execute_script(f"document.body.innerHTML = '{content}'")
+        try:
+            self._driver.execute_script(f"document.body.innerHTML = '{content}'")
+        except Exception as e:
+            print(f"error compiling expression: {expression}")
+            raise e
         
+        # Define maximum allowable dimensions
+        MAX_WIDTH = 1000
+        MAX_HEIGHT = 2000
+
         total_width = self._driver.execute_script("return Math.max(document.body.scrollWidth, document.body.offsetWidth, document.documentElement.clientWidth, document.documentElement.scrollWidth, document.documentElement.offsetWidth);")
         total_height = self._driver.execute_script("return Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight);")
+
+        # Constrain the dimensions to maximum values
+        total_width = min(total_width, MAX_WIDTH)
+        total_height = min(total_height, MAX_HEIGHT)
+
         self._driver.set_window_size(total_width, total_height)
         
         png = self._driver.get_screenshot_as_png()
@@ -659,18 +863,23 @@ class HTMLCSS(Environment):
             grammar_spec,
             start="start",
             sample_start="element",
-            primitives=["element", "css_rule"],
-            terminal_name_to_vocab={
-                "SIGNED_NUMER": string.digits + ".",
-                "COLOR_VALUE": string.hexdigits + "#",
-                "TXT": string.printable,
-            },
-            terminal_to_custom_sampler={
-                Terminal("TXT"): generate_believable_text,
-                Terminal("COLOR_VALUE"): lambda: "#"
-                + "".join(random.choice(string.hexdigits) for _ in range(6)),
-                Terminal("SIGNED_NUMBER"): lambda: round(random.uniform(0, 10), 2),
-            },
+            primitives=["element", "txt", "css_rule"],
+            sampling_weights={
+                "__number_plus_3": [0.8, 0.2], # 20% chance of expanding number
+                # "__txt_plus_3": [ 0.05, 0.05, 0.05, 0.05, 0.2, 0.2, 0.2, 0.2], # the last 4 (which continue the sequence) have a higher chance of being chosen
+                "__txt_plus_2": [0.1, 0.1, 0.1, 0, 0, 1, 1, 1, 0, 0]
+            }
+            # terminal_name_to_vocab={
+            #     "SIGNED_NUMBER": string.digits + ".",
+            #     "COLOR_VALUE": string.hexdigits + "#",
+            #     "TXT": string.digits + string.ascii_letters + string.whitespace + r"""$%&()*+,-./:<=>?@[\]^_`{|}~""",
+            # },
+            # terminal_to_custom_sampler={
+            #     Terminal("TXT"): generate_believable_text,
+            #     Terminal("COLOR_VALUE"): lambda: "#"
+            #     + "".join(random.choice(string.hexdigits) for _ in range(6)),
+            #     Terminal("SIGNED_NUMBER"): lambda: round(random.uniform(0, 10), 2),
+            # },
         )
         self._compiler = HTMLCSSCompiler()
         self._goal_checker = GaussianImageGoalChecker(self.compiled_shape)
@@ -693,3 +902,41 @@ class HTMLCSS(Environment):
 
     def goal_reached(self, compiledA, compiledB):
         return self._goal_checker.goal_reached(compiledA, compiledB)
+
+import re
+
+def clean_css_whitespace(css):
+    css = re.sub(r'\s*([{};:,])\s*', r'\1', css)
+    css = re.sub(r'\s+', ' ', css)
+    return css.strip()
+
+def clean_html_whitespace(html_string):
+    def clean_tag(match):
+        tag = match.group(0)
+        if 'style="' in tag:
+            style_pattern = r'(style=")([^"]*)"(\s*)'
+            tag = re.sub(style_pattern, lambda m: m.group(1) + clean_css_whitespace(m.group(2)) + '"', tag)
+        return re.sub(r'\s+', ' ', tag).strip()
+
+    preserve_space_tags = ['pre', 'code', 'textarea']
+    
+    for tag in preserve_space_tags:
+        if tag == 'textarea':
+            pattern = r'(<textarea[^>]*>)'
+            html_string = re.sub(pattern, lambda m: re.sub(r'(style=")([^"]*)"',
+                                                         lambda n: n.group(1) + clean_css_whitespace(n.group(2)) + '"',
+                                                         m.group(1)), html_string, flags=re.DOTALL)
+        
+        pattern = r'(<{0}[^>]*>)(.*?)(</{0}>)'.format(tag)
+        html_string = re.sub(pattern, 
+                             lambda m: m.group(1).replace(' ', '\0') + m.group(2) + m.group(3).replace(' ', '\0'), 
+                             html_string, 
+                             flags=re.DOTALL)
+
+    html_string = re.sub(r'<[^>]+>', clean_tag, html_string)
+    html_string = re.sub(r'>\s+<', '><', html_string)
+    html_string = re.sub(r' +', ' ', html_string)
+    html_string = html_string.replace('\0', ' ')
+    html_string = re.sub(r' +>', '>', html_string)
+    
+    return html_string.strip()

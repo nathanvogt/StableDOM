@@ -134,7 +134,7 @@ def random_mutation(
 
         if (
             not hasattr(candidate, "parent")
-            or grammar.names_to_symbols[candidate.parent.data] == grammar.start_symbol
+            # or grammar.names_to_symbols[candidate.parent.data] == grammar.start_symbol
         ):
             # We have the root, sample a new expression.
             start = 0
@@ -342,15 +342,20 @@ def one_step_path_mutations(
                     min_primitives=min_primitives,
                     max_primitives=max_primitives,
                 )
-                tightening_diffs = one_step_path_mutations(
-                    new_expression,
-                    b,
-                    grammar,
-                    max_primitives,
-                    truncate_nonzero=True,
-                )
+                try:
+                    tightening_diffs = one_step_path_mutations(
+                        new_expression,
+                        b,
+                        grammar,
+                        max_primitives,
+                        truncate_nonzero=True,
+                    )
+                except: # might not be a start point for language
+                    tightening_diffs = []
 
                 new_expression = apply_all_mutations(new_expression, tightening_diffs)
+                if not hasattr(treeA.meta, "start_pos"):
+                    print(f"treeA does not has start pos:\n{treeA.pretty()}")
                 return [
                     Mutation(
                         start=treeA.meta.start_pos,
@@ -408,7 +413,6 @@ def find_path(
 
         if steps > max_steps:
             return None
-
     return path
 
 

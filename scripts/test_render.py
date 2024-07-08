@@ -1,11 +1,11 @@
 import os
 import matplotlib.pyplot as plt
-from td.environments.htmlcss import HTMLCSS
+from td.environments.htmlcss import HTMLCSS, clean_html_whitespace
 from td.samplers.mutator import forward_process_with_path
 from td.samplers import ConstrainedRandomSampler
 
 samples_dir = "samples"
-sample = 2
+sample = 1
 sample_path = os.path.join(samples_dir, f"sample_{sample}.html")
 
 env = HTMLCSS()
@@ -16,21 +16,26 @@ sampler = ConstrainedRandomSampler(grammar)
 with open(sample_path, "r") as f:
     sample_html = f.read()
     sample_html = sample_html.replace("\n", "")
+    sample_html = clean_html_whitespace(sample_html)
+
 img = env.compile(sample_html)
 
-mutated_sample, reverse_mutation = forward_process_with_path(
+mutated_sample, reverse_mutation, full_path = forward_process_with_path(
     sample_html,
     num_steps=2,
     grammar=grammar,
     sampler=sampler,
-    min_primitives=1,
-    max_primitives=8,
-    path_max_primitives=8,
-    selection_max_primitives=8,
-    replacement_max_primitives=8,
+    min_primitives=2,
+    max_primitives=16,
+    path_max_primitives=5,
+    selection_max_primitives=16,
+    replacement_max_primitives=16,
     p_random=0.2,
+    return_full_path=True
 )
-print(reverse_mutation)
+print(full_path)
+print('\n')
+print(mutated_sample)
 mutated_img = env.compile(mutated_sample)
 
 # show both images side by side

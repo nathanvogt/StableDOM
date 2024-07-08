@@ -1,5 +1,7 @@
 from typing import List
 
+from lark.grammar import Terminal
+
 import enum
 from collections import defaultdict
 
@@ -86,11 +88,16 @@ class DecoderState(object):
 
     def _node_rule(self, node):
         if not hasattr(node, "parent"):
-            return self._grammar._start_name
+            return self._grammar._sample_start_name
 
         idx = node.parent.children.index(node)
         matched = self._grammar.tree_matcher.match_tree(node.parent, node.parent.data)
-        rule_name = matched.children[idx].data
+        matched_child = matched.children[
+            0 if idx >= len(matched.children) else idx
+        ]
+        if matched_child is None:
+            raise ValueError("Could not find matched child")
+        rule_name = matched_child.data
         return rule_name
 
     def _position_rule(self, position):
@@ -112,6 +119,8 @@ class DecoderState(object):
             self._valid_tokens = np.array([self._tokenizer.eos_token])
             self._valid_tokens_mask = self._mask_from_indexes(self._valid_tokens)
             return
+
+        accepts = [x for x in accepts if x != "$END"]
 
         valid_tokens = [
             self._tokenizer._token_to_index[self._grammar.vocabulary_map[x]]

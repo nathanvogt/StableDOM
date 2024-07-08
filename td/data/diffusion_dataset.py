@@ -5,9 +5,9 @@ import torch.nn.functional as F
 from absl import logging
 from torch.utils.data import get_worker_info, IterableDataset
 
+from td.environments.htmlcss import clean_html_whitespace
 from td.environments import environments
 from td.learning.tokenizer import Tokenizer
-from td.learning.evaluation import OneStepEvaluator
 from td.samplers import ConstrainedRandomSampler
 from td.samplers.mutator import (
     forward_process,
@@ -24,6 +24,7 @@ def get_premade_sample():
     with open(sample_path, "r") as f:
         sample_html = f.read()
         sample_html = sample_html.replace("\n", "")
+        sample_html = clean_html_whitespace(sample_html)
     return sample_html
 
 
@@ -69,7 +70,6 @@ class TreeDiffusionDataset(IterableDataset):
 
     def _produce_batch(self):
         try:
-
             def sample_fn():
                 if random.random() < self._premade_sample_mix:
                     return get_premade_sample()
@@ -82,7 +82,8 @@ class TreeDiffusionDataset(IterableDataset):
             target_expressions = []
 
             while len(target_expressions) < self._batch_size:
-                expression = self._env.sample_non_empty(sample_fn)
+                # expression = self._env.sample_non_empty(sample_fn)
+                expression = sample_fn()
                 target_expressions.append(expression)
 
             steps = [
@@ -128,7 +129,6 @@ class TreeDiffusionDataset(IterableDataset):
                     )
                     for expression, step in zip(target_expressions, steps)
                 ]
-
             target_images = [
                 (
                     self._env.compile(expression)
@@ -188,7 +188,7 @@ class TreeDiffusionDataset(IterableDataset):
             )
 
         if any(t is None for t in tokenized):
-            print("Retrying")
+            print("Retrying (none)")
             return self._produce_batch()
         return (
             np.array(tokenized),

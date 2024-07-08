@@ -84,7 +84,7 @@ class ConstrainedRandomSampler(GrammarSampler):
                 if isinstance(tree.data, Terminal):
                     return self.grammar._terminal_map[tree.data.name]
                 return ""
-            return " ".join(tree_to_string(child) for child in tree.children)
+            return "".join(tree_to_string(child) for child in tree.children)
 
         def tree_to_string_node_position(tree: Tree, search_node: Tree):
             def _f(tree: Tree, search_node: Tree, current_start=0) -> tuple[str, int]:
@@ -126,11 +126,13 @@ class ConstrainedRandomSampler(GrammarSampler):
             if return_steps:
                 tree_string, start, end = tree_to_string_node_position(tree, nt)
             choices = self.grammar._nonterminals[nt.data.name]
+            choice_weights = self.grammar._sampling_weights.get(nt.data.name)
 
             choice_costs = self.grammar._min_primitives_choices[nt.data]
 
             if choose_fn is None:
                 selected_choices = choices
+                selected_weights = choice_weights
             else:
                 chosen_cost = choose_fn(choice_costs)
                 selected_choices = [
@@ -138,8 +140,13 @@ class ConstrainedRandomSampler(GrammarSampler):
                     for choice, cost in zip(choices, choice_costs)
                     if cost == chosen_cost
                 ]
+                selected_weights = [
+                    weight
+                    for weight, cost in zip(choice_weights, choice_costs)
+                    if cost == chosen_cost
+                ] if choice_weights is not None else None
 
-            chosen = random.choice(selected_choices)
+            chosen = random.choices(selected_choices, weights=selected_weights)[0]
 
             if return_steps:
                 choice_history.append(
