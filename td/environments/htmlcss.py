@@ -619,6 +619,7 @@ class HTMLCSSCompiler(Compiler):
             self._driver.execute_script(f"document.body.innerHTML = '{content}'")
         except Exception as e:
             print(f"error compiling expression: {expression}")
+            print(f"errored content: {content}")
             raise e
         
         # Define maximum allowable dimensions
