@@ -17,6 +17,8 @@ from td.learning.tokenizer import Tokenizer
 from td.learning.evaluation import OneStepEvaluator
 from td.samplers import ConstrainedRandomSampler
 
+PROJECT_NAME = "stabledom4"
+
 
 FLAGS = flags.FLAGS
 flags.DEFINE_integer("batch_size", 8, "Batch size")
@@ -53,6 +55,7 @@ flags.DEFINE_enum(
     "Forward mode",
 )
 flags.DEFINE_string("resume_from", None, "Resume from checkpoint")
+flags.DEFINE_string("resume_from_filename", None, "Resume from checkpoint filename")
 flags.DEFINE_bool(
     "target_observation", False, "Use observation compiler for target image."
 )
@@ -173,7 +176,7 @@ def main(argv):
     if FLAGS.wandb:
         wandb.login(key="0acc63549fa1187303a58b184767ca5e5ecba44f")
         run = wandb.init(
-            project="stabledom4",
+            project=PROJECT_NAME,
             config=config,
         )
 
@@ -214,9 +217,9 @@ def main(argv):
     
     if FLAGS.resume_from:
         api = wandb.Api()
-        artifact = api.artifact(f"stabledom3/{FLAGS.resume_from}:latest")
+        artifact = api.artifact(f"{PROJECT_NAME}/model-checkpoint-100000:latest")
         artifact_dir = artifact.download()
-        checkpoint_path = os.path.join(artifact_dir, "model.pt")
+        checkpoint_path = os.path.join(artifact_dir, "htmlcss_step_100000.pt")
         state = torch.load(checkpoint_path)
         model.load_state_dict(state['model'])
         step = state['step']
@@ -325,7 +328,7 @@ def main(argv):
             torch.save(checkpoint, checkpoint_path)
             
             if FLAGS.wandb:
-                artifact = wandb.Artifact(f"model-checkpoint-{step + 1}", type="model")
+                artifact = wandb.Artifact(f"{local_run_id}", type="model")
                 artifact.add_file(checkpoint_path)
                 run.log_artifact(artifact)
                 logging.info(f"Checkpointed state to wandb at step {step + 1}")
