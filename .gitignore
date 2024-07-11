@@ -27,3 +27,7 @@ debug_path.py
 .iceberg
 evals/
 scripts/tries/
+.venv/
+.venv/**
+node_modules/
+node_modules/**
