@@ -217,9 +217,20 @@ def main(argv):
     
     if FLAGS.resume_from:
         api = wandb.Api()
-        artifact = api.artifact(f"{PROJECT_NAME}/model-checkpoint-100000:latest")
+        artifact = api.artifact(f"{PROJECT_NAME}/{local_run_id}:latest")
         artifact_dir = artifact.download()
-        checkpoint_path = os.path.join(artifact_dir, "htmlcss_step_100000.pt")
+        checkpoint_files = [
+            f
+            for f in os.listdir(artifact_dir)
+            if f.endswith(".pt") and f.startswith(f"{FLAGS.env}_step_")
+        ]
+        if checkpoint_files:
+            latest_checkpoint = max(
+                checkpoint_files, key=lambda x: int(x.split("_")[-1].split(".")[0])
+            )
+            checkpoint_path = os.path.join(artifact_dir, latest_checkpoint)
+        else:
+            raise ValueError("No checkpoints found in artifact")
         state = torch.load(checkpoint_path)
         model.load_state_dict(state['model'])
         step = state['step']
