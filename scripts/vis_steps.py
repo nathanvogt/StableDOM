@@ -36,17 +36,7 @@ flags.DEFINE_string("device", "cuda", "Device to use")
 
 FLAGS = flags.FLAGS
 
-# html_dsl = "(Div (Junct border:2px green width:100%) (Compose (Div (Junct border:3px blue width:100%) (P '12')) (Compose (Div margin-left:36px (P '10')) (Compose (Compose (Div (Junct border:2px blue (Junct width:50% (Junct margin-left:auto margin-right:auto))) (Compose (P '100') (Compose (P '100') (P '100')))) (Div (Junct width:24% (Junct margin-right:8px margin-left:auto)) (P '8'))) (Div (Junct border:2px red (Junct margin-top:50px width:100%)) (Div (Junct width:24% (Junct height:24px (Junct margin-left:auto margin-right:auto))) (P '12')))))))"
-# html_dsl = "".join(html_dsl.split())
 html_dsl = "(Compose (Div margin-top:5px (P '2')) (Div (Junct (Junct margin-right:10% margin-right:24%) background-color:blue) (Compose (P '7') (P '2'))))"
-
-
-class CPU_Unpickler(pickle.Unpickler):
-    def find_class(self, module, name):
-        if module == "torch.storage" and name == "_load_from_bytes":
-            return lambda b: torch.load(io.BytesIO(b), map_location="cpu")
-        else:
-            return super().find_class(module, name)
 
 
 def generate_uuid():
@@ -54,11 +44,7 @@ def generate_uuid():
 
 
 def load_model(checkpoint_name, device):
-    with open(checkpoint_name, "rb") as f:
-        if torch.cuda.is_available():
-            state = pickle.load(f)
-        else:
-            state = CPU_Unpickler(f).load()
+    state = torch.load(checkpoint_name, map_location=device)
 
     config = state["config"]
     # config["env"] = "html"
@@ -69,7 +55,7 @@ def load_model(checkpoint_name, device):
     d_model = config["d_model"]
     n_layers = config["n_layers"]
     num_heads = config["num_heads"]
-    max_sequence_length = 1024  # config["max_sequence_length"]
+    max_sequence_length = config["max_sequence_length"]
     target_observation = config["target_observation"]
 
     # for key, value in config.items():

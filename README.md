@@ -1,5 +1,17 @@
 # Tree Diffusion
 
+## StableDOM
+
+Parse and mutate HTML+CSS programs to train the model on.
+
+<p align="center">
+  <img src="images/Screenshot 2024-08-26 at 5.38.10 PM.png" height="400">
+</p>
+
+`python scripts/visualize_evaluator.py` to see a batch before and after mutations are applied.
+
+`python scripts/test_render.py` to see a premade datapoint before and after a mutation applied.
+
 ![Website](https://img.shields.io/website?url=https%3A%2F%2Ftree-diffusion.github.io)
 
 [Homepage](https://tree-diffusion.github.io) | [Paper](https://arxiv.org/abs/2405.20519) | [BibTeX](https://tree-diffusion.github.io/#citation)
@@ -19,7 +31,6 @@ All model weights are in `assets/`.
 ### Download Model Weights
 
 Please download all model weights from [this link](https://github.com/revalo/tree-diffusion/releases/download/model-weights/assets.zip), and place them in a new folder called `assets/` in the root directory of this repository.
-
 
 ### Dependencies
 

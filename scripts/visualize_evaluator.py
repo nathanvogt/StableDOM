@@ -21,7 +21,7 @@ def print_some_batches(batch_size):
         max_steps=4,
         max_sequence_length=3000,
         min_primitives=2,
-        max_primitives=10,
+        max_primitives=12,
         sample_min_primitives=10,
         sample_max_primitives=32,
         selection_max_primitives=16,
@@ -31,7 +31,7 @@ def print_some_batches(batch_size):
         target_observation=False,
         current_observation=False,
         random_mix=0.2,
-        premade_sample_mix=0.25
+        premade_sample_mix=0.25,
     )
     start_time = time.time()
     batch = next(iter(dataset))
@@ -56,8 +56,10 @@ def print_some_batches(batch_size):
     fig.set_size_inches(10, 5 * batch_size)
     plt.show()
 
+
 def main():
-    print_some_batches(batch_size=2)
+    print_some_batches(batch_size=3)
+
 
 if __name__ == "__main__":
     main()

@@ -44,11 +44,12 @@ class CPU_Unpickler(pickle.Unpickler):
 
 
 def load_model(checkpoint_name, device):
-    with open(checkpoint_name, "rb") as f:
-        if torch.cuda.is_available():
-            state = pickle.load(f)
-        else:
-            state = CPU_Unpickler(f).load()
+    # with open(checkpoint_name, "rb") as f:
+    #     if torch.cuda.is_available():
+    #         state = pickle.load(f)
+    #     else:
+    #         state = CPU_Unpickler(f).load()
+    state = torch.load(checkpoint_name, map_location=device)
 
     config = state["config"]
 
